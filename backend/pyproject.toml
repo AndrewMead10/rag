@@ -1,0 +1,35 @@
+[project]
+name = "service-template"
+version = "0.1.0"
+description = "Service template with FastAPI and authentication"
+authors = [
+    {name = "Service Template", email = "template@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "sqlalchemy",
+    "alembic",
+    "pydantic",
+    "pydantic['email']",
+    "pydantic-settings",
+    "python-jose[cryptography]",
+    "python-multipart",
+    "passlib[bcrypt]",
+    "boto3",
+    "aiofiles",
+    "httpx",
+]
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

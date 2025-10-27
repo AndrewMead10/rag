@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    ports:
+      - "5656:5656"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-8ca5b0d408d43a525f73ca345dbec25727e44c92e224c66ef2d2e3c7c136d6a5}
+      - ACCESS_TOKEN_TTL_MINUTES=${ACCESS_TOKEN_TTL_MINUTES:-15}
+      - REFRESH_TOKEN_TTL_DAYS=${REFRESH_TOKEN_TTL_DAYS:-30}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - CORS_ORIGINS=${CORS_ORIGINS:-["*"]}
+      - CORS_ALLOW_CREDENTIALS=${CORS_ALLOW_CREDENTIALS:-true}
+      - ENABLE_R2_BACKUP=${ENABLE_R2_BACKUP:-false}
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_BUCKET=${R2_BUCKET}
+      - DATABASE_URL=sqlite:///./data/service.db
+      - ENABLE_USER_REGISTRATION=${ENABLE_USER_REGISTRATION:-true}
+      - ENABLE_PASSWORD_RESET=${ENABLE_PASSWORD_RESET:-true}
+      - ENABLE_ADMIN_PANEL=${ENABLE_ADMIN_PANEL:-true}
+      - ENABLE_BACKUPS=${ENABLE_BACKUPS:-true}
+    restart: unless-stopped
