@@ -32,13 +32,11 @@ echo "Installing Python dependencies..."
 uv sync
 
 echo "Setting up database..."
-if [ ! -f ../data/service.db ]; then
-    mkdir -p ../data
-    uv run alembic upgrade head
-    echo "✅ Database initialized"
+if uv run alembic upgrade head; then
+    echo "✅ Database ready"
 else
-    echo "📊 Database already exists, running migrations..."
-    uv run alembic upgrade head
+    echo "❌ Failed to run database migrations. Ensure PostgreSQL is running and DATABASE_URL is correct."
+    exit 1
 fi
 
 cd ..

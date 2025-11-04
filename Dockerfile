@@ -4,10 +4,22 @@
 FROM python:3.11-slim as backend-openapi
 WORKDIR /app
 
+# Install build dependencies for llama-cpp-python
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    cmake \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN pip install uv
 
 COPY backend/ ./backend
 WORKDIR /app/backend
+
+# Use pre-built wheels for llama-cpp-python to avoid compilation
+ENV CMAKE_ARGS="-DLLAMA_BLAS=OFF -DLLAMA_BLAS_VENDOR=OpenBLAS" \
+    FORCE_CMAKE=0
+
 RUN uv sync
 ENV JWT_SECRET=build-secret \
     ACCESS_TOKEN_TTL_MINUTES=15 \
@@ -33,9 +45,13 @@ RUN npm run build
 FROM python:3.11-slim as backend
 WORKDIR /app
 
-# Install curl for healthchecks and debugging
+# Install curl for healthchecks and build dependencies for llama-cpp-python
 RUN apt-get update \
- && apt-get install -y --no-install-recommends curl \
+ && apt-get install -y --no-install-recommends \
+    curl \
+    gcc \
+    g++ \
+    cmake \
  && rm -rf /var/lib/apt/lists/*
 
 # Install UV for faster dependency management
@@ -44,6 +60,11 @@ RUN pip install uv
 # Copy backend project files and install dependencies
 COPY backend/ ./backend
 WORKDIR /app/backend
+
+# Use pre-built wheels for llama-cpp-python to avoid compilation
+ENV CMAKE_ARGS="-DLLAMA_BLAS=OFF -DLLAMA_BLAS_VENDOR=OpenBLAS" \
+    FORCE_CMAKE=0
+
 RUN uv sync
 
 # Copy built frontend files into FastAPI static dir

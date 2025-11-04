@@ -8,7 +8,9 @@ A comprehensive full-stack service template with FastAPI, React, and modern deve
 
 ### Notes About This Project
 
-*This section should be updated by AI assistants as they learn about the project. Include information about what's being built, why, technical decisions, progress, challenges, or any other context that would be helpful for future sessions.*
+- Building a multi-tenant RAG platform evolved from `../vector-lab-rag`, keeping existing hybrid retrieval and embedding configurability while productizing the experience.
+- New requirements (Oct 27, 2025): self-service user registration, subscription plans (Free, $10/mo, Scale contact), Polar-powered billing with plan-based limits (QPS, vector count, project caps) and ability to purchase additional vector rows for the $10/mo plan, plus user-managed projects with light/dark theme support. Single-user accounts for now with future org expansion in mind. Users begin on Free, can upgrade later, and over-1M vector top-ups persist while the user remains active. No trials or promo codes.
+- Backend work in progress: added account/plan data model, seeded plan defaults (Free:1 QPS/10 ingest, Pro:25/100, Scale contact), per-project pgvector namespaces in PostgreSQL, API-first ingestion/query endpoints using per-project keys, Polar checkout/portal/webhook scaffolding, and persistent usage counters + request-level limits without Redis. Frontend now includes a projects dashboard with plan usage, upgrade/top-up affordances, project creation dialog, and theme toggle. Polar credential configuration, production webhook hardening, and deeper e2e tests still pending.
 
 ---
 
@@ -26,14 +28,14 @@ This template implements a modern full-stack application with:
 
 - **Backend**: FastAPI with SQLAlchemy, JWT authentication, structured logging, and UV for dependency management 
 - **Frontend**: Vite, using React with TypeScript, TanStack Router/Query, ShadCN, Tailwind CSS
-- **Database**: SQLite with Alembic migrations
+- **Database**: PostgreSQL (pgvector) with Alembic migrations
 - **Deployment**: Docker and Docker Compose ready
 
 ## Quick Start
 
 ### Development Setup
 
-The DB is in data/service.db
+The primary database runs in PostgreSQL (default local URI `postgresql+psycopg://postgres:postgres@localhost:5432/rag`).
 
 1. **Access the application**:
 The app in development will have a seperate frontend and backend running, but for deployments, we will build and server the frontend from the backend, allowing for a single container deployment.

@@ -1,18 +1,35 @@
-import os
-import shutil
 import asyncio
-from datetime import datetime, timedelta
+import os
+import subprocess
+from datetime import datetime
 from ..database.models import PasswordResetToken
 from ..database import get_db_session
 from ..config import settings
+from sqlalchemy.engine import make_url
 
 
-def local_backup(db_path: str = "./data/service.db", backups_dir: str = "./data/backups") -> str:
-    """Create a local backup of the SQLite database"""
+def local_backup(backups_dir: str = "./data/backups") -> str:
+    """Create a local pg_dump backup of the PostgreSQL database."""
     os.makedirs(backups_dir, exist_ok=True)
     ts = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
-    dest = os.path.join(backups_dir, f"service-{ts}.db")
-    shutil.copy2(db_path, dest)
+    dest = os.path.join(backups_dir, f"service-{ts}.dump")
+
+    url = make_url(settings.database_url)
+    pg_url = url.set(drivername="postgresql")
+    connection_uri = pg_url.render_as_string(hide_password=False)
+
+    env = os.environ.copy()
+    if pg_url.password:
+        env.setdefault("PGPASSWORD", pg_url.password)
+
+    cmd = [
+        "pg_dump",
+        f"--dbname={connection_uri}",
+        "-Fc",
+        f"--file={dest}",
+    ]
+
+    subprocess.run(cmd, check=True, env=env)
     return dest
 
 

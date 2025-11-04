@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime
 
@@ -23,11 +23,11 @@ class User(Base, AuditMixin):
 
 class Role(Base, AuditMixin):
     __tablename__ = "roles"
-    
+
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, nullable=False)
     parent_role_id = Column(Integer, ForeignKey("roles.id"), nullable=True)
-    
+
     parent = relationship("Role", remote_side=[id])
 
 
@@ -52,3 +52,140 @@ class PasswordResetToken(Base):
     used = Column(Boolean, default=False)
     active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class Account(Base, AuditMixin):
+    __tablename__ = "accounts"
+
+    id = Column(Integer, primary_key=True)
+    owner_user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    name = Column(String, nullable=True)
+
+    owner = relationship("User", backref="account", uselist=False)
+    projects = relationship("Project", back_populates="account", cascade="all, delete-orphan")
+    subscription = relationship("AccountSubscription", back_populates="account", uselist=False)
+    usage = relationship("AccountUsage", back_populates="account", uselist=False)
+
+
+class Plan(Base, AuditMixin):
+    __tablename__ = "plans"
+
+    id = Column(Integer, primary_key=True)
+    slug = Column(String, unique=True, nullable=False)
+    name = Column(String, nullable=False)
+    price_cents = Column(Integer, nullable=False, default=0)
+    polar_product_id = Column(String, nullable=True)
+    query_qps_limit = Column(Integer, nullable=False)
+    ingest_qps_limit = Column(Integer, nullable=False)
+    project_limit = Column(Integer, nullable=False)
+    vector_limit = Column(Integer, nullable=False)
+    allow_topups = Column(Boolean, nullable=False, default=False)
+
+    subscriptions = relationship("AccountSubscription", back_populates="plan")
+
+
+class AccountSubscription(Base, AuditMixin):
+    __tablename__ = "account_subscriptions"
+
+    id = Column(Integer, primary_key=True)
+    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False, unique=True)
+    plan_id = Column(Integer, ForeignKey("plans.id"), nullable=False)
+    status = Column(String, nullable=False, default="active")
+    polar_customer_id = Column(String, nullable=True)
+    polar_subscription_id = Column(String, nullable=True)
+    current_period_end = Column(DateTime, nullable=True)
+    cancel_at_period_end = Column(Boolean, nullable=False, default=False)
+
+    account = relationship("Account", back_populates="subscription")
+    plan = relationship("Plan", back_populates="subscriptions")
+
+
+class VectorTopUp(Base, AuditMixin):
+    __tablename__ = "vector_top_ups"
+
+    id = Column(Integer, primary_key=True)
+    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False)
+    vectors_granted = Column(Integer, nullable=False)
+    vectors_remaining = Column(Integer, nullable=False)
+    polar_order_id = Column(String, nullable=True)
+    purchased_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    account = relationship("Account", backref="vector_topups")
+
+
+class AccountUsage(Base, AuditMixin):
+    __tablename__ = "account_usage"
+
+    id = Column(Integer, primary_key=True)
+    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False, unique=True)
+    total_queries = Column(Integer, nullable=False, default=0)
+    total_ingest_requests = Column(Integer, nullable=False, default=0)
+    total_vectors = Column(Integer, nullable=False, default=0)
+    last_reset = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    account = relationship("Account", back_populates="usage")
+
+
+class RateLimitBucket(Base):
+    __tablename__ = "rate_limit_buckets"
+    __table_args__ = (UniqueConstraint("account_id", "limit_type", name="uq_rate_limit_account_type"),)
+
+    id = Column(Integer, primary_key=True)
+    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False)
+    limit_type = Column(String, nullable=False)  # e.g. "query", "ingest"
+    tokens = Column(Float, nullable=False)
+    last_refill = Column(DateTime, nullable=False, default=datetime.utcnow)
+    max_tokens = Column(Integer, nullable=False)
+
+    account = relationship("Account", backref="rate_limit_buckets")
+
+
+class Project(Base, AuditMixin):
+    __tablename__ = "projects"
+
+    id = Column(Integer, primary_key=True)
+    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False)
+    name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    slug = Column(String, nullable=True)
+    embedding_provider = Column(String, nullable=False)
+    embedding_model = Column(String, nullable=False)
+    embedding_model_repo = Column(String, nullable=True)
+    embedding_model_file = Column(String, nullable=True)
+    embedding_dim = Column(Integer, nullable=False)
+    hybrid_weight_vector = Column(Float, nullable=False, default=0.5)
+    hybrid_weight_text = Column(Float, nullable=False, default=0.5)
+    top_k_default = Column(Integer, nullable=False, default=10)
+    vector_search_k = Column(Integer, nullable=False, default=50)
+    vector_store_path = Column(String, nullable=False)
+    vector_count = Column(Integer, nullable=False, default=0)
+    ingest_api_key_hash = Column(String, nullable=False)
+    last_ingest_at = Column(DateTime, nullable=True)
+
+    account = relationship("Account", back_populates="projects")
+    api_keys = relationship("ProjectApiKey", back_populates="project", cascade="all, delete-orphan")
+
+
+class ProjectApiKey(Base, AuditMixin):
+    __tablename__ = "project_api_keys"
+
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    name = Column(String, nullable=False)
+    prefix = Column(String, nullable=False)
+    hashed_key = Column(String, nullable=False)
+    last_used_at = Column(DateTime, nullable=True)
+    revoked = Column(Boolean, nullable=False, default=False)
+
+    project = relationship("Project", back_populates="api_keys")
+
+
+class ScalePlanInquiry(Base, AuditMixin):
+    __tablename__ = "scale_plan_inquiries"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    email = Column(String, nullable=False)
+    message = Column(Text, nullable=True)
+
+    user = relationship("User", backref="scale_plan_inquiries")

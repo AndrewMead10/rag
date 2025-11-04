@@ -15,7 +15,7 @@ export const Route = createFileRoute('/dashboard/')({
       })
       return {}
     } catch {
-      throw redirect({ to: '/auth/login' })
+      throw redirect({ to: '/auth/login', search: { redirect: undefined } })
     }
   },
   component: DashboardPage,

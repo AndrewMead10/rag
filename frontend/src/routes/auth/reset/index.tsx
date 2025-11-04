@@ -27,7 +27,7 @@ function ResetPage() {
     try {
       await api.auth.resetRequest(data.email)
       toast.success('If an account exists, a reset email has been sent.')
-      navigate({ to: '/auth/login' })
+      navigate({ to: '/auth/login', search: { redirect: undefined } })
     } catch (err: any) {
       console.error(err)
       toast.error(err?.message || 'Failed to send reset email')
@@ -38,7 +38,7 @@ function ResetPage() {
     try {
       await api.auth.resetConfirm(token!, data.new_password)
       toast.success('Password has been reset. Please sign in.')
-      navigate({ to: '/auth/login' })
+      navigate({ to: '/auth/login', search: { redirect: undefined } })
     } catch (err: any) {
       console.error(err)
       toast.error(err?.message || 'Failed to reset password')
@@ -100,7 +100,7 @@ function ResetPage() {
           )}
 
           <div className="mt-4 text-center">
-            <Link to="/auth/login" className="text-sm text-blue-600 hover:text-blue-500">
+            <Link to="/auth/login" search={{ redirect: undefined }} className="text-sm text-blue-600 hover:text-blue-500">
               Back to Sign In
             </Link>
           </div>

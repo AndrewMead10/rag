@@ -38,7 +38,10 @@ async def register_onsubmit(user_data: RegisterRequest, response: Response):
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
     
     hashed_password = get_password_hash(user_data.password)
-    user = create_user(user_data.email, hashed_password)
+    try:
+        user = create_user(user_data.email, hashed_password)
+    except ValueError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     # Generate tokens and set cookies for automatic login
     access_token = create_access_token(user.id)

@@ -10,7 +10,10 @@ class Settings(BaseSettings):
     refresh_token_ttl_days: int = Field(30, env="REFRESH_TOKEN_TTL_DAYS")
     
     # Database
-    database_url: str = Field("sqlite:///./data/service.db", env="DATABASE_URL")
+    database_url: str = Field(
+        "postgresql+psycopg://postgres:postgres@localhost:5432/rag",
+        env="DATABASE_URL",
+    )
 
     # CORS
     cors_origins: list[str] = Field(["*"], env="CORS_ORIGINS")
@@ -49,9 +52,32 @@ class Settings(BaseSettings):
         default_factory=list, env="GOOGLE_ALLOWED_DOMAINS"
     )
 
+    # RAG / Vector settings
+    rag_vector_store_dir: str = Field("data/vector-stores", env="RAG_VECTOR_STORE_DIR")
+    rag_model_repo: str = Field("nomic-ai/nomic-embed-text-v1.5-GGUF", env="RAG_MODEL_REPO")
+    rag_model_filename: str = Field("nomic-embed-text-v1.5.Q8_0.gguf", env="RAG_MODEL_FILENAME")
+    rag_model_dir: str = Field("models", env="RAG_MODEL_DIR")
+    rag_embed_dim: int = Field(768, env="RAG_EMBED_DIM")
+    rag_hf_token: str = Field("", env="RAG_HF_TOKEN")
+    rag_llama_threads: int = Field(4, env="RAG_LLAMA_THREADS")
+    rag_llama_batch_size: int = Field(8, env="RAG_LLAMA_BATCH_SIZE")
+    rag_llama_context: int = Field(2048, env="RAG_LLAMA_CONTEXT")
+
+    # Polar
+    polar_access_token: str = Field("", env="POLAR_ACCESS_TOKEN")
+    polar_environment: str = Field("production", env="POLAR_ENVIRONMENT")
+    polar_webhook_secret: str = Field("", env="POLAR_WEBHOOK_SECRET")
+    polar_product_pro: str = Field("", env="POLAR_PRODUCT_PRO_ID")
+    polar_product_topup: str = Field("", env="POLAR_PRODUCT_TOPUP_ID")
+    polar_topup_unit_cents: int = Field(0, env="POLAR_TOPUP_UNIT_CENTS")
+    polar_success_url: str = Field("http://localhost:3000/billing/success", env="POLAR_SUCCESS_URL")
+    polar_cancel_url: str = Field("http://localhost:3000/billing", env="POLAR_CANCEL_URL")
+    polar_organization_slug: str = Field("", env="POLAR_ORGANIZATION_SLUG")
+    polar_portal_return_url: str = Field("http://localhost:3000/billing", env="POLAR_PORTAL_RETURN_URL")
+
     # Always use .env in project root
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file="../.env",
         env_file_encoding="utf-8",
     )
 

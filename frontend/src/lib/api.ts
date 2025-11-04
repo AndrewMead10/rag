@@ -1,5 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { LoginData, RegisterPayload, User } from '@/lib/types'
+import type {
+  LoginData,
+  ProjectCreatePayload,
+  ProjectCreateResponse,
+  ProjectsOnload,
+  RegisterPayload,
+  User,
+} from '@/lib/types'
 
 // Refresh lock to prevent concurrent refresh requests
 let refreshPromise: Promise<void> | null = null
@@ -123,13 +130,91 @@ const apiClient = {
       throw new Error(error.detail || error.message || `Failed to load ${page} data`)
     }
     return response.json()
-  }
+  },
+
+  async getProjects(): Promise<ProjectsOnload> {
+    const response = await fetchWithAuth('/api/projects/onload')
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.detail || error.message || 'Failed to load projects')
+    }
+    return response.json()
+  },
+
+  async createProject(payload: ProjectCreatePayload): Promise<ProjectCreateResponse> {
+    const response = await fetchWithAuth('/api/projects/onsubmit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.detail || error.message || 'Failed to create project')
+    }
+    return response.json()
+  },
+
+  async requestUpgrade(): Promise<string> {
+    const response = await fetchWithAuth('/api/billing/upgrade', { method: 'POST' })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.detail || error.message || 'Failed to start upgrade')
+    }
+    const data = await response.json()
+    return data.url as string
+  },
+
+  async requestTopUp(quantityMillions: number): Promise<string> {
+    const response = await fetchWithAuth('/api/billing/topup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ quantity_millions: quantityMillions }),
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.detail || error.message || 'Failed to purchase top-up')
+    }
+    const data = await response.json()
+    return data.url as string
+  },
+
+  async openBillingPortal(): Promise<string> {
+    const response = await fetchWithAuth('/api/billing/portal', { method: 'POST' })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.detail || error.message || 'Failed to open billing portal')
+    }
+    const data = await response.json()
+    return data.url as string
+  },
+
+  async submitScaleRequest(message: string): Promise<void> {
+    const response = await fetchWithAuth('/api/billing/scale', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message }),
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.detail || error.message || 'Failed to submit scale inquiry')
+    }
+  },
 }
 
 // Export the api object for use in route loaders
 export const api = {
   auth: apiClient,
   getPageData: apiClient.getPageData,
+  projects: {
+    list: apiClient.getProjects,
+    create: apiClient.createProject,
+  },
+  billing: {
+    upgrade: apiClient.requestUpgrade,
+    topUp: apiClient.requestTopUp,
+    portal: apiClient.openBillingPortal,
+    scale: apiClient.submitScaleRequest,
+  },
 }
 
 // Auth hooks
@@ -190,5 +275,23 @@ export function usePageData(page: string) {
       if (error?.status === 401) return false
       return failureCount < 3
     }
+  })
+}
+
+export function useProjects() {
+  return useQuery({
+    queryKey: ['projects'],
+    queryFn: apiClient.getProjects,
+    refetchOnWindowFocus: false,
+  })
+}
+
+export function useCreateProject() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: apiClient.createProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+    },
   })
 }

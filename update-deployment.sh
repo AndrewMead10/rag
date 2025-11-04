@@ -7,7 +7,7 @@
 
 set -e
 
-SERVICE_NAME="your-service"  # REPLACE with actual service name
+SERVICE_NAME="RAG"  # REPLACE with actual service name
 SERVICE_PORT="5000"          # REPLACE with actual port
 FULL_REBUILD=false
 

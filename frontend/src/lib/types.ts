@@ -33,3 +33,66 @@ export type DashboardData = components['schemas']['DashboardData'] & {
     pending_resets: number
   }
 }
+
+export interface PlanInfo {
+  slug: string
+  name: string
+  price_cents: number
+  query_qps_limit: number
+  ingest_qps_limit: number
+  project_limit: number | null
+  vector_limit: number | null
+  allow_topups: boolean
+}
+
+export interface UsageInfo {
+  total_queries: number
+  total_ingest_requests: number
+  total_vectors: number
+  project_count: number
+  project_limit: number | null
+  vector_limit: number | null
+}
+
+export interface ProjectSummary {
+  id: number
+  name: string
+  description?: string | null
+  slug?: string | null
+  embedding_provider: string
+  embedding_model: string
+  embedding_model_repo?: string | null
+  embedding_model_file?: string | null
+  embedding_dim: number
+  hybrid_weight_vector: number
+  hybrid_weight_text: number
+  top_k_default: number
+  vector_search_k: number
+  vector_count: number
+  vector_store_path: string
+}
+
+export interface ProjectsOnload {
+  projects: ProjectSummary[]
+  usage: UsageInfo
+  plan: PlanInfo
+}
+
+export interface ProjectCreatePayload {
+  name: string
+  description?: string
+  embedding_provider?: string
+  embedding_model?: string
+  embedding_model_repo?: string
+  embedding_model_file?: string
+  embedding_dim?: number
+  hybrid_weight_vector?: number
+  hybrid_weight_text?: number
+  top_k_default?: number
+  vector_search_k?: number
+}
+
+export interface ProjectCreateResponse {
+  project: ProjectSummary
+  ingest_api_key: string
+}

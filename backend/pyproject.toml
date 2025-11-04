@@ -12,6 +12,8 @@ dependencies = [
     "uvicorn[standard]",
     "sqlalchemy",
     "alembic",
+    "pgvector",
+    "psycopg[binary]",
     "pydantic",
     "pydantic['email']",
     "pydantic-settings",
@@ -21,6 +23,11 @@ dependencies = [
     "boto3",
     "aiofiles",
     "httpx",
+    "anyio",
+    "numpy",
+    "huggingface-hub",
+    "llama-cpp-python",
+    "polar-sdk",
 ]
 [tool.ruff]
 line-length = 88

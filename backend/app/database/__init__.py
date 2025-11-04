@@ -1,11 +1,24 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
 from .models import Base
 from ..config import settings
+from pgvector.psycopg import register_vector
 
-engine = create_engine(settings.database_url, connect_args={"check_same_thread": False})
+engine = create_engine(
+    settings.database_url,
+    pool_pre_ping=True,
+    future=True,
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+@event.listens_for(engine, "connect")
+def _setup_extensions(dbapi_conn, connection_record):
+    register_vector(dbapi_conn)
+    with dbapi_conn.cursor() as cur:
+        cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
+        cur.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
 
 
 @contextmanager

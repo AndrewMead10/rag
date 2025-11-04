@@ -1,6 +1,7 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/lib/api'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { LogOut, User } from 'lucide-react'
 
 export function Navbar() {
@@ -10,11 +11,11 @@ export function Navbar() {
   const handleLogout = async () => {
     try {
       await logout.mutateAsync()
-      navigate({ to: '/auth/login' })
+      navigate({ to: '/auth/login', search: { redirect: undefined } })
     } catch (error) {
       console.error('Logout failed:', error)
       // Still redirect even if logout API call fails
-      navigate({ to: '/auth/login' })
+      navigate({ to: '/auth/login', search: { redirect: undefined } })
     }
   }
 
@@ -27,12 +28,18 @@ export function Navbar() {
               to="/"
               className="text-xl font-semibold text-gray-900 hover:text-gray-700"
             >
-              template
+              VectorLab
             </Link>
           </div>
 
           {isAuthenticated ? (
             <div className="flex items-center space-x-4">
+              <Link
+                to="/projects"
+                className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Projects
+              </Link>
               <Link
                 to="/dashboard"
                 className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
@@ -41,6 +48,7 @@ export function Navbar() {
               </Link>
 
               <div className="flex items-center space-x-2">
+                <ThemeToggle />
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                   <User className="h-4 w-4" />
                   <span>{user?.email}</span>
@@ -59,23 +67,12 @@ export function Navbar() {
             </div>
           ) : (
             <div className="flex items-center space-x-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                asChild
-              >
-                <Link to="/auth/login">
-                  Log In
-                </Link>
+              <ThemeToggle />
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/auth/login" search={{ redirect: undefined }}>Log In</Link>
               </Button>
-              <Button
-                variant="default"
-                size="sm"
-                asChild
-              >
-                <Link to="/auth/register">
-                  Sign Up
-                </Link>
+              <Button variant="default" size="sm" asChild>
+                <Link to="/auth/register">Sign Up</Link>
               </Button>
             </div>
           )}

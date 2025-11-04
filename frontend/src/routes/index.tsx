@@ -13,10 +13,10 @@ function HomePage() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Service Template
+            Vector Lab Platform
           </h1>
           <p className="text-gray-600 mb-8">
-            A comprehensive full-stack template with authentication and monitoring
+            Configure retrieval projects, manage limits, and plug RAG into your product.
           </p>
           
           {isAuthenticated ? (
@@ -26,10 +26,10 @@ function HomePage() {
               </p>
               <div className="space-y-2">
                 <Link
-                  to="/dashboard"
+                  to="/projects"
                   className="block w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
                 >
-                  Go to Dashboard
+                  Go to Projects
                 </Link>
                 {/* Admin Panel link removed */}
               </div>
@@ -38,6 +38,7 @@ function HomePage() {
             <div className="space-y-2">
               <Link
                 to="/auth/login"
+                search={{ redirect: undefined }}
                 className="block w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
               >
                 Sign In

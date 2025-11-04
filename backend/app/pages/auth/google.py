@@ -156,7 +156,10 @@ async def google_callback(
     user = get_user_by_email(email)
     if not user:
         random_secret = secrets.token_urlsafe(48)
-        user = create_user(email=email, hashed_password=get_password_hash(random_secret))
+        try:
+            user = create_user(email=email, hashed_password=get_password_hash(random_secret))
+        except ValueError as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is disabled")
