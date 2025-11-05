@@ -34,7 +34,7 @@ function RegisterPage() {
         email: data.email,
         password: data.password
       })
-      navigate({ to: '/dashboard' })
+      navigate({ to: '/projects' })
     } catch (error) {
       console.error('Registration failed:', error)
     }

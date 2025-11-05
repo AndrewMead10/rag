@@ -71,7 +71,7 @@ function HomePage() {
                       to="/projects"
                       className="block w-full bg-foreground text-background text-center py-4 px-6 sharp-corners border-2 border-foreground font-bold hover:bg-muted hover:text-foreground transition-all duration-200 dither-text"
                     >
-                      [ LAUNCH DASHBOARD ]
+                      [ LAUNCH PROJECTS ]
                     </Link>
                   </div>
                 </div>
@@ -114,20 +114,20 @@ function HomePage() {
               <div className="text-center">
                 <div className="text-lg font-bold mb-2">TESTING</div>
                 <div className="text-4xl font-black mb-4">$5<span className="text-lg font-normal">/mo</span></div>
-                <div className="text-sm text-muted-foreground mb-6">Perfect for trying out</div>
+                <div className="text-sm text-muted-foreground mb-6">Perfect for proving out your stack</div>
 
                 <ul className="text-left space-y-3 mb-8">
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">▶</span>
-                    <span>10,000 search queries/month</span>
+                    <span>1 query per second</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">▶</span>
-                    <span>Basic search features</span>
+                    <span>3 projects</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">▶</span>
-                    <span>Claude skill integration</span>
+                    <span>10k vectors per project</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">▶</span>
@@ -152,28 +152,28 @@ function HomePage() {
               <div className="text-center">
                 <div className="text-lg font-bold mb-2">BUILDING</div>
                 <div className="text-4xl font-black mb-4">$20<span className="text-lg font-normal">/mo</span></div>
-                <div className="text-sm mb-6">For active development</div>
+                <div className="text-sm mb-6">For active product development</div>
 
                 <ul className="text-left space-y-3 mb-8">
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">▶</span>
-                    <span>100,000 search queries/month</span>
+                    <span>10 queries per second</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">▶</span>
-                    <span>Advanced search features</span>
+                    <span>20 projects</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">▶</span>
-                    <span>Priority Claude skill access</span>
+                    <span>100k vectors per project</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="font-bold">▶</span>
+                    <span>Vector top-ups available</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">▶</span>
                     <span>Priority support</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="font-bold">▶</span>
-                    <span>Custom indices</span>
                   </li>
                 </ul>
 
@@ -186,45 +186,41 @@ function HomePage() {
               </div>
             </div>
 
-            {/* Scaling Plan */}
+            {/* Enterprise Plan */}
             <div className="bg-background p-8">
               <div className="text-center">
-                <div className="text-lg font-bold mb-2">SCALING</div>
-                <div className="text-4xl font-black mb-4">$50<span className="text-lg font-normal">/mo</span></div>
-                <div className="text-sm text-muted-foreground mb-6">For production apps</div>
+                <div className="text-lg font-bold mb-2">ENTERPRISE</div>
+                <div className="text-4xl font-black mb-4">$100<span className="text-lg font-normal">/mo</span></div>
+                <div className="text-sm text-muted-foreground mb-6">For mission-critical workloads</div>
 
                 <ul className="text-left space-y-3 mb-8">
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">▶</span>
-                    <span>1M+ search queries/month</span>
+                    <span>100 queries per second</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">▶</span>
-                    <span>All search features</span>
+                    <span>Unlimited projects</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">▶</span>
-                    <span>Premium Claude skill features</span>
+                    <span>Unlimited vectors per project</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">▶</span>
-                    <span>24/7 support</span>
+                    <span>Dedicated deployments</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">▶</span>
-                    <span>Custom integrations</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="font-bold">▶</span>
-                    <span>SLA guarantee</span>
+                    <span>SLA & white-glove onboarding</span>
                   </li>
                 </ul>
 
                 <Link
-                  to="/auth/register"
+                  to="/connect"
                   className="block w-full bg-background border-2 border-foreground text-center py-3 px-6 sharp-corners font-bold hover:bg-foreground hover:text-background transition-all duration-200"
                 >
-                  [ START SCALING ]
+                  [ TALK TO SALES ]
                 </Link>
               </div>
             </div>

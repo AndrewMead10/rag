@@ -12,6 +12,7 @@ from ..database import get_db
 from ..database.models import Project
 from ..functions.accounts import (
     ensure_project_capacity,
+    get_account,
     get_account_and_plan,
     get_project_limit,
     get_usage,
@@ -72,7 +73,8 @@ class ProjectSummary(BaseModel):
 class ProjectListResponse(BaseModel):
     projects: List[ProjectSummary]
     usage: UsageInfo
-    plan: PlanInfo
+    plan: Optional[PlanInfo]
+    needs_subscription: bool
 
 
 class ProjectCreateRequest(BaseModel):
@@ -103,7 +105,9 @@ def projects_onload(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    account, plan = get_account_and_plan(db, user_id=current_user.id)
+    account = get_account(db, user_id=current_user.id)
+    subscription = account.subscription
+    plan = subscription.plan if subscription else None
     usage = get_usage(db, account=account)
     projects = (
         db.query(Project)
@@ -112,8 +116,9 @@ def projects_onload(
         .all()
     )
 
-    vector_limit = get_vector_limit(db, account=account, plan=plan)
-    project_limit = get_project_limit(plan)
+    needs_subscription = plan is None
+    vector_limit = get_vector_limit(db, account=account, plan=plan) if plan else None
+    project_limit = get_project_limit(plan) if plan else None
 
     return ProjectListResponse(
         projects=[
@@ -153,7 +158,8 @@ def projects_onload(
             project_limit=project_limit,
             vector_limit=vector_limit,
             allow_topups=plan.allow_topups,
-        ),
+        ) if plan else None,
+        needs_subscription=needs_subscription,
     )
 
 

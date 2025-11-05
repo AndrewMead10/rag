@@ -34,7 +34,7 @@ def _cookie_secure_flag() -> bool:
 
 def _sanitize_redirect(redirect: Optional[str]) -> str:
     if not redirect or not redirect.startswith("/"):
-        return "/dashboard"
+        return "/projects"
     return redirect
 
 

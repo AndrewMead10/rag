@@ -24,7 +24,7 @@ class PolarConfig:
     environment: str
     success_url: str
     cancel_url: str
-    product_pro: str
+    product_building: str
     product_topup: str
     topup_unit_cents: int
 
@@ -35,7 +35,7 @@ def _get_config() -> PolarConfig:
         environment=settings.polar_environment,
         success_url=settings.polar_success_url,
         cancel_url=settings.polar_cancel_url,
-        product_pro=settings.polar_product_pro,
+        product_building=settings.polar_product_building,
         product_topup=settings.polar_product_topup,
         topup_unit_cents=settings.polar_topup_unit_cents,
     )
@@ -54,18 +54,26 @@ def create_upgrade_checkout_session(
     *,
     account: Account,
     user_email: str,
-    pro_plan: Plan,
+    target_plan: Plan,
 ) -> str:
     subscription = account.subscription
     if subscription is None:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Subscription missing")
-
-    if subscription.plan_id == pro_plan.id:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Already on the Pro plan")
+        subscription = AccountSubscription(
+            account_id=account.id,
+            plan_id=target_plan.id,
+            status="pending",
+        )
+        session.add(subscription)
+        session.flush()
+    elif subscription.plan_id == target_plan.id and subscription.status in {"active", "pending"}:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Already on the Building plan")
 
     config = _get_config()
-    if not config.product_pro:
-        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, detail="Polar product for Pro plan not configured")
+    if not config.product_building:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Polar product for Building plan not configured",
+        )
 
     client = _client(config)
     metadata: Dict[str, Any] = {
@@ -75,7 +83,7 @@ def create_upgrade_checkout_session(
 
     checkout = client.checkouts.create(
         request={
-            "products": [config.product_pro],
+            "products": [config.product_building],
             "success_url": config.success_url,
             "return_url": config.cancel_url,
             "external_customer_id": _external_customer_id(account.id),
@@ -181,10 +189,10 @@ def handle_checkout_completed(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Subscription missing")
 
     if intent == "plan_upgrade":
-        pro_plan = plan_lookup.get("pro")
-        if pro_plan is None:
-            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Pro plan missing")
-        subscription.plan_id = pro_plan.id
+        building_plan = plan_lookup.get("building")
+        if building_plan is None:
+            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Building plan missing")
+        subscription.plan_id = building_plan.id
         subscription.status = "active"
         if order.subscription is not None:
             _sync_subscription(subscription, order.subscription)
@@ -193,7 +201,7 @@ def handle_checkout_completed(
             subscription.status = "active"
         if order.customer_id:
             subscription.polar_customer_id = order.customer_id
-        apply_plan_limits(session, account=account, plan=pro_plan)
+        apply_plan_limits(session, account=account, plan=building_plan)
         session.add(subscription)
     elif intent == "vector_topup":
         from ..database.models import VectorTopUp

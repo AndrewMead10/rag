@@ -26,7 +26,7 @@ function DocsPage() {
               <div>
                 <h3 className="text-xl font-bold mb-3">1. Get Your API Key</h3>
                 <p className="text-muted-foreground mb-4">
-                  Sign up and retrieve your API key from the dashboard.
+                  Sign up and retrieve your API key from the projects page.
                 </p>
                 <div className="bg-background border border-foreground p-4 font-mono text-sm">
                   <div className="text-muted-foreground mb-2"># Example API key format</div>

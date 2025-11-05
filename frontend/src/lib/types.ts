@@ -20,20 +20,6 @@ export interface ApiError {
   code?: string
 }
 
-// Prefer generated type; intersect with precise shape to ensure strong typing
-export type DashboardData = components['schemas']['DashboardData'] & {
-  user_stats: {
-    user_id: number
-    email: string
-    account_created: string
-  }
-  system_metrics: {
-    total_users: number
-    active_users: number
-    pending_resets: number
-  }
-}
-
 export interface PlanInfo {
   slug: string
   name: string
@@ -75,7 +61,8 @@ export interface ProjectSummary {
 export interface ProjectsOnload {
   projects: ProjectSummary[]
   usage: UsageInfo
-  plan: PlanInfo
+  plan: PlanInfo | null
+  needs_subscription: boolean
 }
 
 export interface ProjectCreatePayload {

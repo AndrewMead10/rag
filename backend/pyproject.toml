@@ -30,7 +30,8 @@ dependencies = [
     "polar-sdk",
     "logfire",
     "logfire[sqlalchemy]",
-    "logfire[fastapi]"
+    "logfire[fastapi]",
+    "pytest>=8.4.2",
 ]
 [tool.ruff]
 line-length = 88

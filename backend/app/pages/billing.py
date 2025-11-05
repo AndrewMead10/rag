@@ -9,8 +9,9 @@ from sqlalchemy.orm import Session
 
 from ..config import settings
 from ..database import get_db, get_db_session
-from ..database.models import Plan, ScalePlanInquiry
+from ..database.models import Plan, EnterprisePlanInquiry
 from ..functions.accounts import (
+    get_account,
     get_account_and_plan,
     get_account_by_id,
     get_plan_by_slug,
@@ -36,7 +37,7 @@ class TopUpRequest(BaseModel):
     quantity_millions: int
 
 
-class ScaleInquiryRequest(BaseModel):
+class EnterpriseInquiryRequest(BaseModel):
     message: str
 
 
@@ -45,12 +46,17 @@ def upgrade_plan(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    account, _ = get_account_and_plan(db, user_id=current_user.id)
-    pro_plan = get_plan_by_slug(db, "pro")
-    if pro_plan is None:
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Pro plan not configured")
+    account = get_account(db, user_id=current_user.id)
+    building_plan = get_plan_by_slug(db, "building")
+    if building_plan is None:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Building plan not configured")
 
-    url = create_upgrade_checkout_session(db, account=account, user_email=current_user.email, pro_plan=pro_plan)
+    url = create_upgrade_checkout_session(
+        db,
+        account=account,
+        user_email=current_user.email,
+        target_plan=building_plan,
+    )
     db.commit()
     return CheckoutResponse(url=url)
 
@@ -82,13 +88,13 @@ def open_billing_portal(
     return CheckoutResponse(url=url)
 
 
-@router.post("/scale", status_code=status.HTTP_202_ACCEPTED)
-def request_scale_plan(
-    payload: ScaleInquiryRequest,
+@router.post("/enterprise", status_code=status.HTTP_202_ACCEPTED)
+def request_enterprise_plan(
+    payload: EnterpriseInquiryRequest,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    inquiry = ScalePlanInquiry(user_id=current_user.id, email=current_user.email, message=payload.message)
+    inquiry = EnterprisePlanInquiry(user_id=current_user.id, email=current_user.email, message=payload.message)
     db.add(inquiry)
     db.commit()
     return {"status": "received"}

@@ -29,7 +29,7 @@ export function getRequiredRole(pathname: string): string | null {
   if (pathname.startsWith('/admin')) {
     return 'admin'
   }
-  if (pathname.startsWith('/dashboard')) {
+  if (pathname.startsWith('/projects')) {
     return 'user'
   }
   return null

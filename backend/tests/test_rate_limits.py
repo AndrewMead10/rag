@@ -34,13 +34,13 @@ def session() -> Session:
 @pytest.fixture
 def seeded_account(session: Session):
     plan = Plan(
-        slug="free",
-        name="Free",
-        price_cents=0,
+        slug="testing",
+        name="Testing",
+        price_cents=500,
         query_qps_limit=1,
-        ingest_qps_limit=10,
+        ingest_qps_limit=1,
         project_limit=3,
-        vector_limit=1000,
+        vector_limit=30_000,
         allow_topups=False,
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow(),

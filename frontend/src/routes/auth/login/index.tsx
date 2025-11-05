@@ -29,7 +29,7 @@ function LoginPage() {
   const { login } = useAuth({ fetchUser: false })
   const { register, handleSubmit, formState: { errors } } = useForm<LoginData>()
   const { redirect } = Route.useSearch()
-  const targetPath = redirect ?? '/dashboard'
+  const targetPath = redirect ?? '/projects'
 
   const onSubmit = async (data: LoginData) => {
     try {

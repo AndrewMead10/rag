@@ -10,13 +10,17 @@ from sqlalchemy.orm import Session
 from ..database.models import Account, AccountSubscription, AccountUsage, Plan, Project, VectorTopUp
 
 
-def get_account_and_plan(session: Session, *, user_id: int) -> Tuple[Account, Plan]:
+def get_account(session: Session, *, user_id: int) -> Account:
     account = session.execute(
         select(Account).where(Account.owner_user_id == user_id)
     ).scalar_one_or_none()
     if account is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Account not found")
+    return account
 
+
+def get_account_and_plan(session: Session, *, user_id: int) -> Tuple[Account, Plan]:
+    account = get_account(session, user_id=user_id)
     subscription = account.subscription
     if subscription is None:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Account subscription missing")

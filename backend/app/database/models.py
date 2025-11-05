@@ -180,7 +180,7 @@ class ProjectApiKey(Base, AuditMixin):
     project = relationship("Project", back_populates="api_keys")
 
 
-class ScalePlanInquiry(Base, AuditMixin):
+class EnterprisePlanInquiry(Base, AuditMixin):
     __tablename__ = "scale_plan_inquiries"
 
     id = Column(Integer, primary_key=True)
@@ -188,4 +188,4 @@ class ScalePlanInquiry(Base, AuditMixin):
     email = Column(String, nullable=False)
     message = Column(Text, nullable=True)
 
-    user = relationship("User", backref="scale_plan_inquiries")
+    user = relationship("User", backref="enterprise_plan_inquiries")

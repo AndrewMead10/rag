@@ -26,7 +26,7 @@ def get_user_by_email(email: str) -> User | None:
         return db.query(User).filter(User.email == email).first()
 
 
-def create_user(email: str, hashed_password: str, default_plan_slug: str = "free") -> User:
+def create_user(email: str, hashed_password: str, default_plan_slug: str = "testing") -> User:
     """Create a new user"""
     with get_db_session() as db:
         plan = db.query(Plan).filter(Plan.slug == default_plan_slug).one_or_none()

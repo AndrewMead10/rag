@@ -1,6 +1,5 @@
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useAuth } from '@/lib/api'
-import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { LogOut, User } from 'lucide-react'
 

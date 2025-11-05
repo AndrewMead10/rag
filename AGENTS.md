@@ -9,8 +9,8 @@ A comprehensive full-stack service template with FastAPI, React, and modern deve
 ### Notes About This Project
 
 - Building a multi-tenant RAG platform evolved from `../vector-lab-rag`, keeping existing hybrid retrieval and embedding configurability while productizing the experience.
-- New requirements (Oct 27, 2025): self-service user registration, subscription plans (Free, $10/mo, Scale contact), Polar-powered billing with plan-based limits (QPS, vector count, project caps) and ability to purchase additional vector rows for the $10/mo plan, plus user-managed projects with light/dark theme support. Single-user accounts for now with future org expansion in mind. Users begin on Free, can upgrade later, and over-1M vector top-ups persist while the user remains active. No trials or promo codes.
-- Backend work in progress: added account/plan data model, seeded plan defaults (Free:1 QPS/10 ingest, Pro:25/100, Scale contact), per-project pgvector namespaces in PostgreSQL, API-first ingestion/query endpoints using per-project keys, Polar checkout/portal/webhook scaffolding, and persistent usage counters + request-level limits without Redis. Frontend now includes a projects dashboard with plan usage, upgrade/top-up affordances, project creation dialog, and theme toggle. Polar credential configuration, production webhook hardening, and deeper e2e tests still pending.
+- Pricing refresh (Nov 5, 2025): Testing ($5/mo; 1 QPS; 3 projects; ≈10k vectors/project), Building ($20/mo; 10 QPS; 20 projects; ≈100k vectors/project with purchasable top-ups), and Enterprise ($100/mo; 100 QPS; unlimited projects & vectors; dedicated deployments). Accounts start on Testing and can self-upgrade or contact sales for Enterprise. Dedicated deployments handled via `/api/billing/enterprise`.
+- Backend work in progress: added account/plan data model, seeded plan defaults (Testing/Building/Enterprise), per-project pgvector namespaces in PostgreSQL, API-first ingestion/query endpoints using per-project keys, Polar checkout/portal/webhook scaffolding, and persistent usage counters + request-level limits without Redis. Frontend now includes a projects dashboard with plan usage, upgrade/top-up affordances, project creation dialog, and theme toggle. Polar credential configuration, production webhook hardening, and deeper e2e tests still pending.
 - Frontend auth hook now accepts `useAuth({ fetchUser: false })` to skip eager `/api/auth/me` calls on public screens like login/register, preventing refresh loops while unauthenticated. Navbar uses current route to disable the fetch on `/auth/*` paths.
 
 ---
@@ -161,8 +161,8 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
 - Protect routes individually by adding a `beforeLoad` that ensures the user is present; public routes omit it.
 - Example (protected route):
   ```ts
-  // in routes/dashboard/index.tsx
-  export const Route = createFileRoute('/dashboard/')({
+  // in routes/projects/index.tsx
+  export const Route = createFileRoute('/projects/')({
     beforeLoad: async () => {
       try {
         await queryClient.ensureQueryData({
@@ -173,7 +173,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
         throw redirect({ to: '/auth/login' })
       }
     },
-    component: DashboardPage,
+    component: ProjectsPage,
   })
   ```
 

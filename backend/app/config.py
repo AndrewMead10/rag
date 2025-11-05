@@ -67,7 +67,7 @@ class Settings(BaseSettings):
     polar_access_token: str = Field("", env="POLAR_ACCESS_TOKEN")
     polar_environment: str = Field("production", env="POLAR_ENVIRONMENT")
     polar_webhook_secret: str = Field("", env="POLAR_WEBHOOK_SECRET")
-    polar_product_pro: str = Field("", env="POLAR_PRODUCT_PRO_ID")
+    polar_product_building: str = Field("", env="POLAR_PRODUCT_BUILDING_ID")
     polar_product_topup: str = Field("", env="POLAR_PRODUCT_TOPUP_ID")
     polar_topup_unit_cents: int = Field(0, env="POLAR_TOPUP_UNIT_CENTS")
     polar_success_url: str = Field("http://localhost:3000/billing/success", env="POLAR_SUCCESS_URL")

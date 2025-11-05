@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect, Link } from '@tanstack/react-router'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
@@ -88,13 +88,17 @@ function ProjectsPage() {
     },
   })
 
-  const scaleRequest = useMutation({
-    mutationFn: api.billing.scale,
+  const enterpriseRequest = useMutation({
+    mutationFn: api.billing.enterprise,
     onSuccess: () => toast.success('Thanks! We will reach out shortly.'),
     onError: (err: any) => toast.error(err?.message || 'Unable to submit request'),
   })
 
   const handleCreateProject = async () => {
+    if (data?.needs_subscription) {
+      toast.error('Start a subscription to create projects.')
+      return
+    }
     try {
       const result = await createProject.mutateAsync(formState)
       setShowCreate(false)
@@ -121,10 +125,10 @@ function ProjectsPage() {
     topUp.mutate(quantity)
   }
 
-  const handleScaleRequest = () => {
-    const message = window.prompt('Tell us what you need and we will reach out:')
+  const handleEnterpriseRequest = () => {
+    const message = window.prompt('Tell us what you need for dedicated deployments:')
     if (!message) return
-    scaleRequest.mutate(message)
+    enterpriseRequest.mutate(message)
   }
 
   if (isLoading) {
@@ -140,6 +144,7 @@ function ProjectsPage() {
   }
 
   const plan = data?.plan
+  const needsSubscription = data?.needs_subscription ?? false
   const usage = data?.usage
   const projects = data?.projects ?? []
   const vectorLimit = usage?.vector_limit ?? null
@@ -150,6 +155,10 @@ function ProjectsPage() {
   const projectPercent = projectLimit
     ? Math.min(100, Math.round((usage!.project_count / projectLimit) * 100))
     : 0
+  const approxVectorsPerProject =
+    plan && plan.project_limit && plan.project_limit > 0 && vectorLimit
+      ? Math.floor(vectorLimit / plan.project_limit)
+      : null
 
   return (
     <div className="max-w-7xl mx-auto py-10 px-4 space-y-8">
@@ -160,7 +169,9 @@ function ProjectsPage() {
         </div>
         <Dialog open={showCreate} onOpenChange={setShowCreate}>
           <DialogTrigger asChild>
-            <Button>Create Project</Button>
+            <Button disabled={needsSubscription}>
+              {needsSubscription ? 'Subscription Required' : 'Create Project'}
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -197,7 +208,7 @@ function ProjectsPage() {
               </Button>
               <Button
                 onClick={handleCreateProject}
-                disabled={!formState.name || createProject.isPending}
+                disabled={!formState.name || createProject.isPending || data?.needs_subscription}
               >
                 {createProject.isPending ? 'Creating...' : 'Create'}
               </Button>
@@ -206,19 +217,44 @@ function ProjectsPage() {
         </Dialog>
       </div>
 
-      {plan && usage && (
+      {needsSubscription && (
+        <Card className="border-dashed">
+          <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <CardTitle className="text-xl">No Active Subscription</CardTitle>
+              <CardDescription>
+                Start a plan to unlock project creation, vector storage, and API access.
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={() => upgrade.mutate()} disabled={upgrade.isPending}>
+                {upgrade.isPending ? 'Preparing checkout…' : 'Get a Subscription'}
+              </Button>
+              <Button variant="outline" asChild>
+                <Link to="/" hash="pricing">
+                  View Pricing
+                </Link>
+              </Button>
+            </div>
+          </CardHeader>
+        </Card>
+      )}
+
+      {!needsSubscription && plan && usage && (
         <Card>
           <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
               <CardTitle className="text-xl">{plan.name} Plan</CardTitle>
               <CardDescription>
-                {plan.slug === 'free' ? 'Start for free and upgrade when ready.' : 'Your active subscription'}
+                {plan.slug === 'testing'
+                  ? 'Trial the platform on Testing and upgrade when ready.'
+                  : 'Your active subscription'}
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              {plan.slug === 'free' && (
+              {plan.slug === 'testing' && (
                 <Button onClick={() => upgrade.mutate()} disabled={upgrade.isPending}>
-                  {upgrade.isPending ? 'Redirecting...' : 'Upgrade to Pro'}
+                  {upgrade.isPending ? 'Redirecting...' : 'Upgrade to Building'}
                 </Button>
               )}
               {plan.allow_topups && (
@@ -226,13 +262,13 @@ function ProjectsPage() {
                   {topUp.isPending ? 'Preparing...' : 'Buy Vector Top-Up'}
                 </Button>
               )}
-              {plan.slug !== 'free' && (
+              {plan.slug !== 'testing' && (
                 <Button variant="ghost" onClick={() => portal.mutate()} disabled={portal.isPending}>
                   Billing Portal
                 </Button>
               )}
-              <Button variant="ghost" onClick={handleScaleRequest} disabled={scaleRequest.isPending}>
-                Contact for Scale
+              <Button variant="ghost" onClick={handleEnterpriseRequest} disabled={enterpriseRequest.isPending}>
+                Contact Enterprise
               </Button>
             </div>
           </CardHeader>
@@ -242,6 +278,13 @@ function ProjectsPage() {
             <MetricCard
               title="Vectors"
               value={formatVectorLimit(usage.total_vectors, vectorLimit)}
+              help={
+                approxVectorsPerProject
+                  ? `≈ ${formatNumber(approxVectorsPerProject)} per project`
+                  : vectorLimit === null
+                    ? 'Per project unlimited'
+                    : undefined
+              }
             >
               {vectorLimit && (
                 <Progress value={vectorPercent} className="mt-2" />
@@ -265,7 +308,11 @@ function ProjectsPage() {
         </CardHeader>
         <CardContent>
           {projects.length === 0 ? (
-            <div className="text-sm text-muted-foreground">No projects yet. Create one to get started.</div>
+            <div className="text-sm text-muted-foreground">
+              {needsSubscription
+                ? 'Choose a subscription to start creating projects.'
+                : 'No projects yet. Create one to get started.'}
+            </div>
           ) : (
             <Table>
               <TableHeader>

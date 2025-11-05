@@ -187,15 +187,15 @@ const apiClient = {
     return data.url as string
   },
 
-  async submitScaleRequest(message: string): Promise<void> {
-    const response = await fetchWithAuth('/api/billing/scale', {
+  async submitEnterpriseRequest(message: string): Promise<void> {
+    const response = await fetchWithAuth('/api/billing/enterprise', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message }),
     })
     if (!response.ok) {
       const error = await response.json().catch(() => ({}))
-      throw new Error(error.detail || error.message || 'Failed to submit scale inquiry')
+      throw new Error(error.detail || error.message || 'Failed to submit enterprise inquiry')
     }
   },
 }
@@ -212,7 +212,7 @@ export const api = {
     upgrade: apiClient.requestUpgrade,
     topUp: apiClient.requestTopUp,
     portal: apiClient.openBillingPortal,
-    scale: apiClient.submitScaleRequest,
+    enterprise: apiClient.submitEnterpriseRequest,
   },
 }
 
@@ -242,6 +242,7 @@ export function useAuth(options: UseAuthOptions = {}) {
   const logout = useMutation({
     mutationFn: apiClient.logout,
     onSuccess: () => {
+      queryClient.setQueryData(['user'], undefined)
       queryClient.clear()
     },
   })

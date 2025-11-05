@@ -100,8 +100,8 @@ backend/app/
 ├── main.py                 # FastAPI app setup
 ├── config.py              # Configuration management
 ├── pages/                 # Page-specific business logic
-│   ├── auth/             # Authentication pages 
-│   ├── dashboard.py      # Dashboard data endpoints
+│   ├── auth/             # Authentication pages
+│   ├── projects.py       # Projects page endpoints
 │   └── admin/           # Admin pages 
 ├── middleware/          # HTTP middleware
 ├── database/           # Models and database utilities
@@ -132,7 +132,7 @@ frontend/src/
 ├── routes/              # TanStack Router pages
 │   ├── __root.tsx      # Root layout with auth
 │   ├── index.tsx       # Home page
-│   ├── dashboard/      # Dashboard page
+│   ├── projects/       # Projects page
 │   └── auth/          # Authentication pages
 ├── components/         # Reusable UI components
 ├── lib/               # API client and utilities
@@ -181,8 +181,8 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
 - Protect routes individually by adding a `beforeLoad` that ensures the user is present; public routes omit it.
 - Example (protected route):
   ```ts
-  // in routes/dashboard/index.tsx
-  export const Route = createFileRoute('/dashboard/')({
+  // in routes/projects/index.tsx
+  export const Route = createFileRoute('/projects/')({
     beforeLoad: async () => {
       try {
         await queryClient.ensureQueryData({
@@ -193,7 +193,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
         throw redirect({ to: '/auth/login' })
       }
     },
-    component: DashboardPage,
+    component: ProjectsPage,
   })
   ```
 
@@ -263,7 +263,7 @@ By default this will be off.
 
 - Generate types from the running backend: `cd frontend && npm run gen:types` (fetches `http://localhost:5656/openapi.json`).
 - Import request/response types from `src/lib/openapi-types.ts` (e.g., `LoginRequest`, `UserResponse`).
-- Keep OpenAPI schemas precise (avoid `additionalProperties: true`). For page aggregates like dashboard, define explicit models on the backend so the spec is strongly typed.
+- Keep OpenAPI schemas precise (avoid `additionalProperties: true`). For page aggregates like projects, define explicit models on the backend so the spec is strongly typed.
 
 ### Adding Authenticated API Endpoints
 
