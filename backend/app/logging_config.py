@@ -1,35 +1,48 @@
+from __future__ import annotations
+
+import os
+
 import logfire
-from sqlalchemy import create_engine
+
 from .config import settings
+
+_logfire_configured = False
+_sqlalchemy_instrumented = False
+
+
+def _should_send_to_logfire() -> str:
+    """Send to LogFire only when a token is present."""
+    return "if-token-present"
 
 
 def setup_logfire():
-    """Configure LogFire with automatic instrumentation"""
-    if not settings.logfire_enabled:
+    """Configure LogFire with automatic instrumentation."""
+    global _logfire_configured
+
+    if not settings.logfire_enabled or _logfire_configured:
         return
 
-    # Configure LogFire
+    if "LOGFIRE_IGNORE_NO_CONFIG" not in os.environ:
+        os.environ["LOGFIRE_IGNORE_NO_CONFIG"] = "true" if settings.logfire_ignore_no_config else "false"
+
     logfire.configure(
         service_name=settings.logfire_service_name,
         service_version="1.0.0",
-        token=settings.logfire_token if settings.logfire_token else None,
-        # Only send to external service in production if token is provided
-        send_to_logfire=bool(settings.logfire_token) and settings.logfire_environment == "production",
+        environment=settings.logfire_environment,
+        token=settings.logfire_token or None,
+        send_to_logfire=_should_send_to_logfire(),
     )
 
-    # # Log initialization
-    # logfire.info("LogFire initialized", {
-    #     "environment": settings.logfire_environment,
-    #     "service_name": settings.logfire_service_name,
-    #     "send_to_logfire": bool(settings.logfire_token)
-    # })
-    #
+    _logfire_configured = True
 
 def instrument_sqlalchemy(engine):
-    """Instrument SQLAlchemy engine with LogFire"""
-    if not settings.logfire_enabled:
+    """Instrument SQLAlchemy engine with LogFire."""
+    global _sqlalchemy_instrumented
+
+    if not settings.logfire_enabled or _sqlalchemy_instrumented:
         return engine
 
+    setup_logfire()
     logfire.instrument_sqlalchemy(engine=engine)
-    logfire.info("SQLAlchemy instrumented with LogFire")
+    _sqlalchemy_instrumented = True
     return engine

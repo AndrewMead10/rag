@@ -56,6 +56,7 @@ class Database:
                 Column("created_at", DateTime(timezone=True), nullable=False, server_default=func.now()),
                 Column("embedding", Vector(self._embed_dim), nullable=False),
                 Column("text_search", TSVECTOR, nullable=False),
+                Column("active", Integer, nullable=False, server_default="1"),
             )
 
             Index(_index_name(self._table_name, "project_idx"), table.c.project_id)
@@ -179,7 +180,7 @@ class Database:
                 published_at,
                 created_at
             FROM {self._table_name}
-            WHERE id = :doc_id
+            WHERE id = :doc_id AND active = 1
             LIMIT 1
             """
         )
@@ -262,7 +263,7 @@ class Database:
                         websearch_to_tsquery('english', :fts_query)
                     ) AS text_score
                 FROM {self._table_name}
-                WHERE websearch_to_tsquery('english', :fts_query) @@ text_search
+                WHERE websearch_to_tsquery('english', :fts_query) @@ text_search AND active = 1
                 ORDER BY text_score DESC
                 LIMIT :text_k
             ),
@@ -285,6 +286,7 @@ class Database:
                         (1 - (embedding <=> :embedding)) AS vector_score,
                         (embedding <=> :embedding) AS vector_distance
                     FROM {self._table_name}
+                    WHERE active = 1
                     ORDER BY embedding <=> :embedding
                     LIMIT :vector_k
                 ),
@@ -361,6 +363,7 @@ class Database:
                     title,
                     embedding <=> :embedding AS vector_distance
                 FROM {self._table_name}
+                WHERE active = 1
                 ORDER BY embedding <=> :embedding
                 LIMIT :k
                 """
@@ -400,7 +403,7 @@ class Database:
                     websearch_to_tsquery('english', :fts_query)
                 ) AS text_score
             FROM {self._table_name}
-            WHERE websearch_to_tsquery('english', :fts_query) @@ text_search
+            WHERE websearch_to_tsquery('english', :fts_query) @@ text_search AND active = 1
             ORDER BY text_score DESC
             LIMIT :limit
             """
@@ -427,7 +430,7 @@ class Database:
         with self._lock:
             session: Session = self._session_factory()
             try:
-                result = session.execute(sql_text(f"SELECT COUNT(*) FROM {self._table_name}"))
+                result = session.execute(sql_text(f"SELECT COUNT(*) FROM {self._table_name} WHERE active = 1"))
                 count = int(result.scalar() or 0)
                 session.commit()
             except Exception:

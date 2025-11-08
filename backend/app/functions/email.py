@@ -32,10 +32,41 @@ class EmailService:
         <p>This link will expire in 1 hour.</p>
         """
 
+    def _build_verification_html(self, verification_url: str) -> str:
+        return f"""
+        <h2>Verify Your Email Address</h2>
+        <p>Thank you for registering! Please click the link below to verify your email address:</p>
+        <a href=\"{verification_url}\">Verify Email</a>
+        <p>This link will expire in 24 hours.</p>
+        <p>If you did not create an account, you can safely ignore this email.</p>
+        """
+
     def send_password_reset(self, to_email: str, reset_token: str) -> bool:
         reset_url = f"{settings.frontend_url.rstrip('/')}/auth/reset?token={reset_token}"
         subject = "Password Reset Request"
         html_body = self._build_reset_html(reset_url)
+
+        # In non-configured environments, succeed to avoid blocking dev
+        if not self._enabled or self._client is None:
+            return True
+
+        try:
+            self._client.send_email(
+                Source=self.from_email,
+                Destination={'ToAddresses': [to_email]},
+                Message={
+                    'Subject': {'Data': subject},
+                    'Body': {'Html': {'Data': html_body}},
+                },
+            )
+            return True
+        except ClientError as e:  # pragma: no cover
+            return False
+
+    def send_email_verification(self, to_email: str, verification_token: str) -> bool:
+        verification_url = f"{settings.frontend_url.rstrip('/')}/auth/verify-email?token={verification_token}"
+        subject = "Verify Your Email Address"
+        html_body = self._build_verification_html(verification_url)
 
         # In non-configured environments, succeed to avoid blocking dev
         if not self._enabled or self._client is None:

@@ -27,12 +27,16 @@ async def login_onsubmit(credentials: LoginRequest, response: Response):
     user = get_user_by_email(credentials.email)
     if not user or not verify_password(credentials.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    
+
     if not user.is_active:
         raise HTTPException(status_code=401, detail="Account is disabled")
-    
+
+    # Check if email is verified
+    if not user.is_email_verified:
+        raise HTTPException(status_code=403, detail="Please verify your email address before logging in")
+
     set_auth_cookies(response, user.id)
-    
+
     roles = list(get_user_roles_with_hierarchy(user.id))
 
     return LoginResponse(

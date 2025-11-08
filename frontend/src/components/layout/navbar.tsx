@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
-import { useAuth } from '@/lib/api'
+import { useAuth, useProjects } from '@/lib/api'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
-import { LogOut, User } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 
 export function Navbar() {
   const navigate = useNavigate()
@@ -10,9 +10,19 @@ export function Navbar() {
   })
   const pathname = location.pathname ?? ''
   const isAuthRoute = pathname.startsWith('/auth')
-  const { user, logout, isAuthenticated } = useAuth({
+  const { logout, isAuthenticated } = useAuth({
     fetchUser: !isAuthRoute,
   })
+  const { data: projectsData } = useProjects()
+  const needsSubscription = projectsData?.needs_subscription || false
+
+  // Helper function to check if a link is active
+  const isActive = (path: string) => {
+    if (path === '/') {
+      return pathname === '/'
+    }
+    return pathname.startsWith(path)
+  }
 
   const handleLogout = async () => {
     try {
@@ -31,7 +41,7 @@ export function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center space-x-6">
             <Link
-              to="/"
+              to={isAuthenticated ? "/projects" : "/"}
               className="text-lg font-black font-mono-jetbrains dither-text hover:text-muted-foreground"
             >
               Retriever.sh
@@ -41,20 +51,33 @@ export function Navbar() {
           <div className="flex items-center space-x-4">
             <Link
               to="/docs"
-              className="text-sm font-mono-jetbrains font-bold text-muted-foreground hover:text-foreground px-4 py-2 transition-all duration-200 hover:scale-110"
+              className={`text-sm font-mono-jetbrains font-bold px-4 py-2 transition-all duration-200 hover:scale-110 ${
+                isActive('/docs')
+                  ? 'text-foreground font-black'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
               [ DOCS ]
             </Link>
-            <Link
-              to="/"
-              hash="pricing"
-              className="text-sm font-mono-jetbrains font-bold text-muted-foreground hover:text-foreground px-4 py-2 transition-all duration-200 hover:scale-110"
-            >
-              [ PRICING ]
-            </Link>
+            {!isAuthenticated || needsSubscription ? (
+              <Link
+                to="/pricing"
+                className={`text-sm font-mono-jetbrains font-bold px-4 py-2 transition-all duration-200 hover:scale-110 ${
+                  isActive('/pricing')
+                    ? 'text-foreground font-black'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                [ PRICING ]
+              </Link>
+            ) : null}
             <Link
               to="/connect"
-              className="text-sm font-mono-jetbrains font-bold text-muted-foreground hover:text-foreground px-4 py-2 transition-all duration-200 hover:scale-110"
+              className={`text-sm font-mono-jetbrains font-bold px-4 py-2 transition-all duration-200 hover:scale-110 ${
+                isActive('/connect')
+                  ? 'text-foreground font-black'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
               [ CONNECT ]
             </Link>
@@ -65,7 +88,11 @@ export function Navbar() {
               <div className="hidden md:flex items-center space-x-4">
                 <Link
                   to="/projects"
-                  className="text-sm font-mono-jetbrains font-bold text-muted-foreground hover:text-foreground px-4 py-2 sharp-corners border border-transparent hover:border-foreground transition-all duration-200"
+                  className={`text-sm font-mono-jetbrains font-bold px-4 py-2 transition-all duration-200 hover:scale-110 ${
+                    isActive('/projects')
+                      ? 'text-foreground font-black'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
                 >
                   [ PROJECTS ]
                 </Link>

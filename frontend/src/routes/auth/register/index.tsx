@@ -1,9 +1,8 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import type { RegisterData } from '@/lib/types'
 
 function GoogleIcon() {
@@ -22,7 +21,6 @@ export const Route = createFileRoute('/auth/register/')({
 })
 
 function RegisterPage() {
-  const navigate = useNavigate()
   const { register: registerUser } = useAuth({ fetchUser: false })
   const { register, handleSubmit, watch, formState: { errors } } = useForm<RegisterData>()
   
@@ -34,32 +32,40 @@ function RegisterPage() {
         email: data.email,
         password: data.password
       })
-      navigate({ to: '/projects' })
+      // Don't navigate - user needs to verify email first
     } catch (error) {
       console.error('Registration failed:', error)
     }
   }
 
   const handleGoogleSignIn = () => {
-    window.location.href = '/auth/google/login'
+    window.location.href = '/api/auth/google/login'
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Create Account</CardTitle>
-          <CardDescription>
-            Sign up to get started with your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="min-h-screen bg-background dither-bg font-mono-jetbrains flex items-center justify-center px-4">
+      <div className="w-full max-w-md space-y-8">
+        {/* Main title */}
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-black dither-text leading-none">
+            RETRIEVER.<span className="font-bold">SH</span>
+          </h1>
+          <div className="h-1 bg-foreground dither-border mx-auto w-32"></div>
+          <p className="text-lg text-muted-foreground font-mono-jetbrains">
+            Create your search API account
+          </p>
+        </div>
+
+        {/* Register form container */}
+        <div className="bg-card border-2 border-foreground dither-border sharp-corners p-8 space-y-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
+            <div className="space-y-2">
+              <div className="text-xs font-bold mb-2">// EMAIL</div>
               <Input
                 type="email"
-                placeholder="Email"
-                {...register('email', { 
+                placeholder="Enter your email"
+                className="bg-background border-foreground sharp-corners font-mono-jetbrains"
+                {...register('email', {
                   required: 'Email is required',
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
@@ -68,15 +74,17 @@ function RegisterPage() {
                 })}
               />
               {errors.email && (
-                <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
+                <p className="text-sm text-destructive font-mono-jetbrains">{errors.email.message}</p>
               )}
             </div>
-            
-            <div>
+
+            <div className="space-y-2">
+              <div className="text-xs font-bold mb-2">// PASSWORD</div>
               <Input
                 type="password"
-                placeholder="Password"
-                {...register('password', { 
+                placeholder="Create a password"
+                className="bg-background border-foreground sharp-corners font-mono-jetbrains"
+                {...register('password', {
                   required: 'Password is required',
                   minLength: {
                     value: 8,
@@ -85,78 +93,94 @@ function RegisterPage() {
                 })}
               />
               {errors.password && (
-                <p className="text-sm text-destructive mt-1">{errors.password.message}</p>
+                <p className="text-sm text-destructive font-mono-jetbrains">{errors.password.message}</p>
               )}
             </div>
-            
-            <div>
+
+            <div className="space-y-2">
+              <div className="text-xs font-bold mb-2">// CONFIRM PASSWORD</div>
               <Input
                 type="password"
-                placeholder="Confirm Password"
+                placeholder="Confirm your password"
+                className="bg-background border-foreground sharp-corners font-mono-jetbrains"
                 {...register('confirmPassword', {
                   required: 'Please confirm your password',
                   validate: value => value === password || 'Passwords do not match'
                 })}
               />
               {errors.confirmPassword && (
-                <p className="text-sm text-destructive mt-1">{errors.confirmPassword.message}</p>
+                <p className="text-sm text-destructive font-mono-jetbrains">{errors.confirmPassword.message}</p>
               )}
             </div>
-            
+
             {registerUser.isError && (
-              <p className="text-sm text-destructive">
-                {String((registerUser.error as any)?.message || 'Registration failed')}
-              </p>
+              <div className="bg-destructive/10 border border-destructive p-3 sharp-corners">
+                <p className="text-sm text-destructive font-mono-jetbrains">
+                  {String((registerUser.error as any)?.message || 'Registration failed')}
+                </p>
+              </div>
             )}
 
             {registerUser.isSuccess && (
-              <p className="text-sm text-green-600 dark:text-green-400">
-                Account created successfully! Redirecting...
-              </p>
+              <div className="bg-green-600/10 border border-green-600 p-4 sharp-corners">
+                <p className="text-sm text-green-600 dark:text-green-400 font-mono-jetbrains font-bold mb-2">
+                  // REGISTRATION SUCCESSFUL!
+                </p>
+                <p className="text-sm text-green-600 dark:text-green-400 font-mono-jetbrains">
+                  {registerUser.data?.message || 'Please check your email to verify your account.'}
+                </p>
+              </div>
             )}
-            
-            <Button 
-              type="submit" 
-              className="w-full"
+
+            <Button
+              type="submit"
+              className="w-full bg-foreground text-background font-bold hover:bg-muted hover:text-foreground transition-all duration-200 dither-text sharp-corners border-2 border-foreground py-3"
               disabled={registerUser.isPending}
             >
-              {registerUser.isPending ? 'Creating account...' : 'Create Account'}
+              {registerUser.isPending ? '[ CREATING ACCOUNT... ]' : '[ CREATE ACCOUNT ]'}
             </Button>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t-2 border-foreground dither-border"></span>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-4 w-full"
-              onClick={handleGoogleSignIn}
-            >
-              <GoogleIcon />
-              Continue with Google
-            </Button>
+            <div className="relative flex justify-center">
+              <span className="bg-card px-4 text-xs font-bold text-muted-foreground">
+                // OR CONTINUE WITH
+              </span>
+            </div>
           </div>
 
-          <div className="mt-4 text-center">
+          {/* Google Sign In */}
+          <Button
+            type="button"
+            className="w-full bg-card text-foreground border-2 border-foreground font-bold hover:bg-foreground hover:text-background transition-all duration-200 dither-text sharp-corners py-3"
+            onClick={handleGoogleSignIn}
+          >
+            <GoogleIcon />
+            <span className="ml-2">[ CONTINUE WITH GOOGLE ]</span>
+          </Button>
+        </div>
+
+        {/* Links */}
+        <div className="text-center space-y-4">
+          <div className="flex justify-center text-sm font-mono-jetbrains">
             <Link
               to="/auth/login"
               search={{ redirect: undefined }}
-              className="text-sm text-primary hover:text-primary/80"
+              className="text-muted-foreground hover:text-foreground transition-colors duration-200"
             >
-              Already have an account? Sign in
+              [ ALREADY HAVE AN ACCOUNT? SIGN IN ]
             </Link>
           </div>
-        </CardContent>
-      </Card>
+
+          <div className="text-xs text-muted-foreground">
+            <span>© 2024 retriever.sh</span>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

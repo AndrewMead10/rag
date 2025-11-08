@@ -1,4 +1,4 @@
-from pydantic import Field
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import os
 
@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     google_client_id: str = Field("", env="GOOGLE_CLIENT_ID")
     google_client_secret: str = Field("", env="GOOGLE_CLIENT_SECRET")
     google_redirect_uri: str = Field(
-        "http://localhost:8000/auth/google/callback", env="GOOGLE_REDIRECT_URI"
+        "http://localhost:5656/api/auth/google/callback", env="GOOGLE_REDIRECT_URI"
     )
     google_allowed_domains: list[str] = Field(
         default_factory=list, env="GOOGLE_ALLOWED_DOMAINS"
@@ -67,8 +67,14 @@ class Settings(BaseSettings):
     polar_access_token: str = Field("", env="POLAR_ACCESS_TOKEN")
     polar_environment: str = Field("production", env="POLAR_ENVIRONMENT")
     polar_webhook_secret: str = Field("", env="POLAR_WEBHOOK_SECRET")
-    polar_product_building: str = Field("", env="POLAR_PRODUCT_BUILDING_ID")
-    polar_product_topup: str = Field("", env="POLAR_PRODUCT_TOPUP_ID")
+    polar_product_building: str = Field(
+        "",
+        validation_alias=AliasChoices("POLAR_PRODUCT_BUILDING_ID", "POLAR_PRODUCT_BUILDING"),
+    )
+    polar_product_topup: str = Field(
+        "",
+        validation_alias=AliasChoices("POLAR_PRODUCT_TOPUP_ID", "POLAR_PRODUCT_TOPUP"),
+    )
     polar_topup_unit_cents: int = Field(0, env="POLAR_TOPUP_UNIT_CENTS")
     polar_success_url: str = Field("http://localhost:3000/billing/success", env="POLAR_SUCCESS_URL")
     polar_cancel_url: str = Field("http://localhost:3000/billing", env="POLAR_CANCEL_URL")

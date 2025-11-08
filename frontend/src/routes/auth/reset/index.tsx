@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
 
@@ -46,66 +45,106 @@ function ResetPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Password Reset</CardTitle>
-          <CardDescription>
-            {token ? 'Enter a new password for your account' : 'Request a password reset link'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="min-h-screen bg-background dither-bg font-mono-jetbrains flex items-center justify-center px-4">
+      <div className="w-full max-w-md space-y-8">
+        {/* Main title */}
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-black dither-text leading-none">
+            RETRIEVER.<span className="font-bold">SH</span>
+          </h1>
+          <div className="h-1 bg-foreground dither-border mx-auto w-32"></div>
+          <p className="text-lg text-muted-foreground font-mono-jetbrains">
+            {token ? 'Reset your password' : 'Request a password reset'}
+          </p>
+        </div>
+
+        {/* Reset form container */}
+        <div className="bg-card border-2 border-foreground dither-border sharp-corners p-8 space-y-6">
           {!token ? (
             <form onSubmit={handleSubmit(onRequest)} className="space-y-4">
-              <div>
+              <div className="space-y-2">
+                <div className="text-xs font-bold mb-2">// EMAIL</div>
                 <Input
                   type="email"
-                  placeholder="Email"
+                  placeholder="Enter your email"
+                  className="bg-background border-foreground sharp-corners font-mono-jetbrains"
                   {...register('email', { required: 'Email is required' })}
                 />
                 {errors.email && (
-                  <p className="text-sm text-red-600 mt-1">{String(errors.email.message)}</p>
+                  <p className="text-sm text-destructive font-mono-jetbrains">{String(errors.email.message)}</p>
                 )}
               </div>
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? 'Sending...' : 'Send Reset Link'}
+
+              <Button
+                type="submit"
+                className="w-full bg-foreground text-background font-bold hover:bg-muted hover:text-foreground transition-all duration-200 dither-text sharp-corners border-2 border-foreground py-3"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? '[ SENDING... ]' : '[ SEND RESET LINK ]'}
               </Button>
             </form>
           ) : (
             <form onSubmit={handleSubmit(onConfirm)} className="space-y-4">
-              <div>
+              <div className="space-y-2">
+                <div className="text-xs font-bold mb-2">// NEW PASSWORD</div>
                 <Input
                   type="password"
-                  placeholder="New Password"
-                  {...register('new_password', { required: 'Password is required', minLength: { value: 8, message: 'Min length 8' } })}
+                  placeholder="Enter new password"
+                  className="bg-background border-foreground sharp-corners font-mono-jetbrains"
+                  {...register('new_password', {
+                    required: 'Password is required',
+                    minLength: { value: 8, message: 'Password must be at least 8 characters' }
+                  })}
                 />
                 {errors.new_password && (
-                  <p className="text-sm text-red-600 mt-1">{String(errors.new_password.message)}</p>
+                  <p className="text-sm text-destructive font-mono-jetbrains">{String(errors.new_password.message)}</p>
                 )}
               </div>
-              <div>
+
+              <div className="space-y-2">
+                <div className="text-xs font-bold mb-2">// CONFIRM PASSWORD</div>
                 <Input
                   type="password"
-                  placeholder="Confirm Password"
-                  {...register('confirm_password', { required: 'Please confirm', validate: (v) => v === password || 'Passwords do not match' })}
+                  placeholder="Confirm new password"
+                  className="bg-background border-foreground sharp-corners font-mono-jetbrains"
+                  {...register('confirm_password', {
+                    required: 'Please confirm your password',
+                    validate: (v) => v === password || 'Passwords do not match'
+                  })}
                 />
                 {errors.confirm_password && (
-                  <p className="text-sm text-red-600 mt-1">{String(errors.confirm_password.message)}</p>
+                  <p className="text-sm text-destructive font-mono-jetbrains">{String(errors.confirm_password.message)}</p>
                 )}
               </div>
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? 'Updating...' : 'Reset Password'}
+
+              <Button
+                type="submit"
+                className="w-full bg-foreground text-background font-bold hover:bg-muted hover:text-foreground transition-all duration-200 dither-text sharp-corners border-2 border-foreground py-3"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? '[ UPDATING... ]' : '[ RESET PASSWORD ]'}
               </Button>
             </form>
           )}
+        </div>
 
-          <div className="mt-4 text-center">
-            <Link to="/auth/login" search={{ redirect: undefined }} className="text-sm text-blue-600 hover:text-blue-500">
-              Back to Sign In
+        {/* Links */}
+        <div className="text-center space-y-4">
+          <div className="flex justify-center text-sm font-mono-jetbrains">
+            <Link
+              to="/auth/login"
+              search={{ redirect: undefined }}
+              className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+            >
+              [ BACK TO SIGN IN ]
             </Link>
           </div>
-        </CardContent>
-      </Card>
+
+          <div className="text-xs text-muted-foreground">
+            <span>© 2024 retriever.sh</span>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

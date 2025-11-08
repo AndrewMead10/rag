@@ -12,6 +12,7 @@ A comprehensive full-stack service template with FastAPI, React, and modern deve
 - Pricing refresh (Nov 5, 2025): Testing ($5/mo; 1 QPS; 3 projects; ≈10k vectors/project), Building ($20/mo; 10 QPS; 20 projects; ≈100k vectors/project with purchasable top-ups), and Enterprise ($100/mo; 100 QPS; unlimited projects & vectors; dedicated deployments). Accounts start on Testing and can self-upgrade or contact sales for Enterprise. Dedicated deployments handled via `/api/billing/enterprise`.
 - Backend work in progress: added account/plan data model, seeded plan defaults (Testing/Building/Enterprise), per-project pgvector namespaces in PostgreSQL, API-first ingestion/query endpoints using per-project keys, Polar checkout/portal/webhook scaffolding, and persistent usage counters + request-level limits without Redis. Frontend now includes a projects dashboard with plan usage, upgrade/top-up affordances, project creation dialog, and theme toggle. Polar credential configuration, production webhook hardening, and deeper e2e tests still pending.
 - Frontend auth hook now accepts `useAuth({ fetchUser: false })` to skip eager `/api/auth/me` calls on public screens like login/register, preventing refresh loops while unauthenticated. Navbar uses current route to disable the fetch on `/auth/*` paths.
+- Polar config bug: FastAPI settings now read `POLAR_PRODUCT_BUILDING_ID`/`POLAR_PRODUCT_TOPUP_ID` via `AliasChoices` so the Building upgrade/top-up flows pick up Polar product UUIDs correctly in Docker deployments.
 
 ---
 

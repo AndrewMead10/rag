@@ -24,7 +24,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { api, useCreateProject, useProjects } from '@/lib/api'
+import { api, useCreateProject, useDeleteProject, useProjects } from '@/lib/api'
 import type { ProjectCreatePayload } from '@/lib/types'
 import { queryClient } from '@/routes/__root'
 import { formatNumber, formatVectorLimit } from '@/utils/format'
@@ -50,6 +50,7 @@ export const Route = createFileRoute('/projects/')({
 function ProjectsPage() {
   const { data, isLoading, error } = useProjects()
   const createProject = useCreateProject()
+  const deleteProject = useDeleteProject()
   const [showCreate, setShowCreate] = useState(false)
   const [formState, setFormState] = useState<ProjectCreatePayload>({
     name: '',
@@ -129,6 +130,19 @@ function ProjectsPage() {
     const message = window.prompt('Tell us what you need for dedicated deployments:')
     if (!message) return
     enterpriseRequest.mutate(message)
+  }
+
+  const handleDeleteProject = (projectId: number, projectName: string) => {
+    const confirmed = window.confirm(`Are you sure you want to delete project "${projectName}"? This action cannot be undone.`)
+    if (!confirmed) return
+    deleteProject.mutate(projectId, {
+      onSuccess: () => {
+        toast.success('Project deleted successfully')
+      },
+      onError: (err: any) => {
+        toast.error(err?.message || 'Failed to delete project')
+      },
+    })
   }
 
   if (isLoading) {
@@ -250,7 +264,7 @@ function ProjectsPage() {
                 asChild
                 className="bg-background border-2 border-foreground text-foreground sharp-corners font-bold hover:bg-foreground hover:text-background transition-all duration-200"
               >
-                <Link to="/" hash="pricing">
+                <Link to="/pricing">
                   [ VIEW PRICING ]
                 </Link>
               </Button>
@@ -360,8 +374,7 @@ function ProjectsPage() {
                 <TableRow className="border-b border-foreground">
                   <TableHead className="font-bold text-xs">// NAME</TableHead>
                   <TableHead className="font-bold text-xs">// VECTORS</TableHead>
-                  <TableHead className="font-bold text-xs">// EMBEDDING</TableHead>
-                  <TableHead className="font-bold text-xs">// HYBRID WEIGHTS</TableHead>
+                  <TableHead className="font-bold text-xs text-right">// ACTIONS</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -379,18 +392,16 @@ function ProjectsPage() {
                       </div>
                     </TableCell>
                     <TableCell className="font-mono-jetbrains">{formatNumber(project.vector_count)}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-col text-sm font-mono-jetbrains">
-                        <span className="font-bold">{project.embedding_provider}</span>
-                        <span className="text-muted-foreground">
-                          {project.embedding_model}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground font-mono-jetbrains">
-                        vector {project.hybrid_weight_vector.toFixed(2)} / text {project.hybrid_weight_text.toFixed(2)}
-                      </span>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteProject(project.id, project.name)}
+                        disabled={deleteProject.isPending}
+                        className="bg-red-600 text-white border-2 border-red-600 sharp-corners font-bold hover:bg-red-700 hover:border-red-700 transition-all duration-200"
+                      >
+                        [ DELETE ]
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}

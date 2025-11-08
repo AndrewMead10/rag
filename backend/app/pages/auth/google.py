@@ -158,6 +158,13 @@ async def google_callback(
         random_secret = secrets.token_urlsafe(48)
         try:
             user = create_user(email=email, hashed_password=get_password_hash(random_secret))
+            # Mark Google OAuth users as email verified since Google has already verified them
+            from ...database import get_db_session
+            with get_db_session() as db:
+                db_user = db.query(type(user)).filter_by(id=user.id).first()
+                if db_user:
+                    db_user.is_email_verified = True
+                    db.commit()
         except ValueError as exc:
             raise HTTPException(status_code=500, detail=str(exc)) from exc
 

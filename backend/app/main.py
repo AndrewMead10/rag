@@ -6,7 +6,7 @@ import asyncio
 
 from .middleware.cors import setup_cors
 from .middleware.errors import global_exception_handler
-from .pages.auth import login, register, logout, reset, google, utils
+from .pages.auth import login, register, logout, reset, google, utils, verify_email
 from .pages import billing, projects, rag_api, connect
 from .functions.backups import daily_backup_loop, cleanup_expired_tokens
 from .functions.plan_seeding import seed_plans
@@ -40,6 +40,7 @@ app.include_router(register.router, prefix="/api")
 app.include_router(utils.router, prefix="/api")
 app.include_router(logout.router, prefix="/api")
 app.include_router(reset.router, prefix="/api")
+app.include_router(verify_email.router, prefix="/api")
 app.include_router(projects.router, prefix="/api")
 app.include_router(rag_api.router, prefix="/api")
 app.include_router(billing.router, prefix="/api")

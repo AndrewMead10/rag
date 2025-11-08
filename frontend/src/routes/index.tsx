@@ -1,7 +1,21 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import { useAuth } from '@/lib/api'
+import { queryClient } from '@/routes/__root'
+import { api } from '@/lib/api'
 
 export const Route = createFileRoute('/')({
+  beforeLoad: async () => {
+    try {
+      await queryClient.ensureQueryData({
+        queryKey: ['user'],
+        queryFn: api.auth.getCurrentUser,
+      })
+      // If we can get the user, they're authenticated, so redirect to projects
+      throw redirect({ to: '/projects' })
+    } catch {
+      // User is not authenticated, continue to home page
+    }
+  },
   component: HomePage,
 })
 

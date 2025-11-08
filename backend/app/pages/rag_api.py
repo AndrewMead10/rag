@@ -29,7 +29,7 @@ def _load_project(session: Session, project_id: int) -> Project:
         .join(Account, Project.account_id == Account.id)
         .join(AccountSubscription, AccountSubscription.account_id == Account.id)
         .join(Plan, AccountSubscription.plan_id == Plan.id)
-        .filter(Project.id == project_id)
+        .filter(Project.id == project_id, Project.active == True)
         .first()
     )
     if project is None:

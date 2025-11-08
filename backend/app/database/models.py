@@ -12,12 +12,15 @@ class AuditMixin:
 
 class User(Base, AuditMixin):
     __tablename__ = "users"
-    
+
     id = Column(Integer, primary_key=True)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
-    
+    is_email_verified = Column(Boolean, default=False, nullable=False)
+    email_verification_token = Column(String, unique=True, nullable=True, index=True)
+    email_verification_token_expires_at = Column(DateTime, nullable=True)
+
     roles = relationship("UserRole", back_populates="user", cascade="all, delete-orphan")
 
 
@@ -161,6 +164,7 @@ class Project(Base, AuditMixin):
     vector_count = Column(Integer, nullable=False, default=0)
     ingest_api_key_hash = Column(String, nullable=False)
     last_ingest_at = Column(DateTime, nullable=True)
+    active = Column(Boolean, nullable=False, default=True)
 
     account = relationship("Account", back_populates="projects")
     api_keys = relationship("ProjectApiKey", back_populates="project", cascade="all, delete-orphan")

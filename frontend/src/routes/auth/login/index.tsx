@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form'
 import { useAuth } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import type { LoginData } from '@/lib/types'
 
 function GoogleIcon() {
@@ -47,26 +46,34 @@ function LoginPage() {
     }
     const query = params.toString()
     window.location.href = query
-      ? `/auth/google/login?${query}`
-      : '/auth/google/login'
+      ? `/api/auth/google/login?${query}`
+      : '/api/auth/google/login'
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Sign In</CardTitle>
-          <CardDescription>
-            Enter your credentials to access your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="min-h-screen bg-background dither-bg font-mono-jetbrains flex items-center justify-center px-4">
+      <div className="w-full max-w-md space-y-8">
+        {/* Main title */}
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-black dither-text leading-none">
+            RETRIEVER.<span className="font-bold">SH</span>
+          </h1>
+          <div className="h-1 bg-foreground dither-border mx-auto w-32"></div>
+          <p className="text-lg text-muted-foreground font-mono-jetbrains">
+            Sign in to access your search API
+          </p>
+        </div>
+
+        {/* Login form container */}
+        <div className="bg-card border-2 border-foreground dither-border sharp-corners p-8 space-y-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
+            <div className="space-y-2">
+              <div className="text-xs font-bold mb-2">// EMAIL</div>
               <Input
                 type="email"
-                placeholder="Email"
-                {...register('email', { 
+                placeholder="Enter your email"
+                className="bg-background border-foreground sharp-corners font-mono-jetbrains"
+                {...register('email', {
                   required: 'Email is required',
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
@@ -75,74 +82,85 @@ function LoginPage() {
                 })}
               />
               {errors.email && (
-                <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
+                <p className="text-sm text-destructive font-mono-jetbrains">{errors.email.message}</p>
               )}
             </div>
-            
-            <div>
+
+            <div className="space-y-2">
+              <div className="text-xs font-bold mb-2">// PASSWORD</div>
               <Input
                 type="password"
-                placeholder="Password"
+                placeholder="Enter your password"
+                className="bg-background border-foreground sharp-corners font-mono-jetbrains"
                 {...register('password', { required: 'Password is required' })}
               />
               {errors.password && (
-                <p className="text-sm text-destructive mt-1">{errors.password.message}</p>
+                <p className="text-sm text-destructive font-mono-jetbrains">{errors.password.message}</p>
               )}
             </div>
-            
+
             {login.isError && (
-              <p className="text-sm text-destructive">
-                {String((login.error as any)?.message || 'Login failed')}
-              </p>
+              <div className="bg-destructive/10 border border-destructive p-3 sharp-corners">
+                <p className="text-sm text-destructive font-mono-jetbrains">
+                  {String((login.error as any)?.message || 'Login failed')}
+                </p>
+              </div>
             )}
-            
-            <Button 
-              type="submit" 
-              className="w-full"
+
+            <Button
+              type="submit"
+              className="w-full bg-foreground text-background font-bold hover:bg-muted hover:text-foreground transition-all duration-200 dither-text sharp-corners border-2 border-foreground py-3"
               disabled={login.isPending}
             >
-              {login.isPending ? 'Signing in...' : 'Sign In'}
+              {login.isPending ? '[ SIGNING IN... ]' : '[ SIGN IN ]'}
             </Button>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t-2 border-foreground dither-border"></span>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-4 w-full"
-              onClick={handleGoogleSignIn}
-            >
-              <GoogleIcon />
-              Continue with Google
-            </Button>
+            <div className="relative flex justify-center">
+              <span className="bg-card px-4 text-xs font-bold text-muted-foreground">
+                // OR CONTINUE WITH
+              </span>
+            </div>
           </div>
-          
-          <div className="mt-4 text-center">
+
+          {/* Google Sign In */}
+          <Button
+            type="button"
+            className="w-full bg-card text-foreground border-2 border-foreground font-bold hover:bg-foreground hover:text-background transition-all duration-200 dither-text sharp-corners py-3"
+            onClick={handleGoogleSignIn}
+          >
+            <GoogleIcon />
+            <span className="ml-2">[ CONTINUE WITH GOOGLE ]</span>
+          </Button>
+        </div>
+
+        {/* Links */}
+        <div className="text-center space-y-4">
+          <div className="flex justify-center space-x-8 text-sm font-mono-jetbrains">
             <Link
               to="/auth/reset"
-              className="text-sm text-primary hover:text-primary/80 mr-4"
+              className="text-muted-foreground hover:text-foreground transition-colors duration-200"
             >
-              Forgot your password?
+              [ FORGOT PASSWORD? ]
             </Link>
             <Link
               to="/auth/register"
-              className="text-sm text-primary hover:text-primary/80"
+              className="text-muted-foreground hover:text-foreground transition-colors duration-200"
             >
-              Don't have an account? Sign up
+              [ CREATE ACCOUNT ]
             </Link>
           </div>
-        </CardContent>
-      </Card>
+
+          <div className="text-xs text-muted-foreground">
+            <span>© 2024 retriever.sh</span>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

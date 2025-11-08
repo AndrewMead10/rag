@@ -73,7 +73,7 @@ const apiClient = {
     return response.json()
   },
 
-  async register(data: RegisterPayload): Promise<User> {
+  async register(data: RegisterPayload): Promise<{ success: boolean; message: string }> {
     const response = await fetch('/api/auth/register/onsubmit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -83,8 +83,7 @@ const apiClient = {
       const error = await response.json()
       throw new Error(error.detail || error.message || 'Registration failed')
     }
-    const json = await response.json()
-    return json.user as User
+    return response.json()
   },
 
   async logout(): Promise<void> {
@@ -153,6 +152,18 @@ const apiClient = {
     return response.json()
   },
 
+  async deleteProject(projectId: number): Promise<void> {
+    const response = await fetchWithAuth('/api/projects/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project_id: projectId }),
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.detail || error.message || 'Failed to delete project')
+    }
+  },
+
   async requestUpgrade(): Promise<string> {
     const response = await fetchWithAuth('/api/billing/upgrade', { method: 'POST' })
     if (!response.ok) {
@@ -207,6 +218,7 @@ export const api = {
   projects: {
     list: apiClient.getProjects,
     create: apiClient.createProject,
+    delete: apiClient.deleteProject,
   },
   billing: {
     upgrade: apiClient.requestUpgrade,
@@ -296,6 +308,16 @@ export function useCreateProject() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: apiClient.createProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+    },
+  })
+}
+
+export function useDeleteProject() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: apiClient.deleteProject,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] })
     },

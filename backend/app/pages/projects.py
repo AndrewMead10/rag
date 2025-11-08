@@ -111,7 +111,7 @@ def projects_onload(
     usage = get_usage(db, account=account)
     projects = (
         db.query(Project)
-        .filter(Project.account_id == account.id)
+        .filter(Project.account_id == account.id, Project.active == True)
         .order_by(Project.created_at.desc())
         .all()
     )
@@ -178,7 +178,7 @@ def create_project(
 
     existing_slug = (
         db.query(Project)
-        .filter(Project.account_id == account.id, Project.slug == slug)
+        .filter(Project.account_id == account.id, Project.slug == slug, Project.active == True)
         .first()
     )
     if existing_slug:
@@ -240,3 +240,50 @@ def create_project(
     )
 
     return ProjectCreateResponse(project=project_summary, ingest_api_key=ingest_key_plain)
+
+
+class ProjectDeleteRequest(BaseModel):
+    project_id: int
+
+
+@router.post("/delete", status_code=status.HTTP_200_OK)
+def delete_project(
+    payload: ProjectDeleteRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    account = get_account(db, user_id=current_user.id)
+
+    # Find the project and verify it belongs to the user's account
+    project = (
+        db.query(Project)
+        .filter(Project.id == payload.project_id, Project.account_id == account.id, Project.active == True)
+        .first()
+    )
+
+    if not project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
+    # Mark the project as inactive
+    project.active = False
+    db.add(project)
+    db.commit()
+
+    # Mark all vectors in the project's table as inactive
+    try:
+        vector_store = vector_store_registry.get_database(project)
+        if vector_store.is_ready():
+            from sqlalchemy import text as sql_text
+            session = db
+            session.execute(
+                sql_text(f"UPDATE {project.vector_store_path} SET active = 0 WHERE project_id = :project_id"),
+                {"project_id": project.id}
+            )
+            session.commit()
+    except Exception as e:
+        # Log the error but don't fail the delete operation
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.exception(f"Failed to mark vectors as inactive for project {project.id}: {e}")
+
+    return {"detail": "Project deleted successfully"}
