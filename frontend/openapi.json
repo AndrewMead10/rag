@@ -48,7 +48,7 @@
     "/api/auth/register/onsubmit": {
       "post": {
         "summary": "Register Onsubmit",
-        "description": "Handle user registration",
+        "description": "Handle user registration with email verification",
         "operationId": "register_onsubmit_api_auth_register_onsubmit_post",
         "requestBody": {
           "content": {
@@ -209,6 +209,45 @@
         }
       }
     },
+    "/api/auth/verify-email/onsubmit": {
+      "post": {
+        "summary": "Verify Email",
+        "description": "Handle email verification when user clicks the link",
+        "operationId": "verify_email_api_auth_verify_email_onsubmit_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyEmailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/projects/onload": {
       "get": {
         "tags": [
@@ -255,6 +294,45 @@
                 "schema": {
                   "$ref": "#/components/schemas/ProjectCreateResponse"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/delete": {
+      "post": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Delete Project",
+        "operationId": "delete_project_api_projects_delete_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectDeleteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -485,27 +563,6 @@
         }
       }
     },
-    "/api/billing/upgrade": {
-      "post": {
-        "tags": [
-          "billing"
-        ],
-        "summary": "Upgrade Plan",
-        "operationId": "upgrade_plan_api_billing_upgrade_post",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CheckoutResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/billing/topup": {
       "post": {
         "tags": [
@@ -561,45 +618,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CheckoutResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/billing/enterprise": {
-      "post": {
-        "tags": [
-          "billing"
-        ],
-        "summary": "Request Enterprise Plan",
-        "operationId": "request_enterprise_plan_api_billing_enterprise_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EnterpriseInquiryRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "202": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -1005,19 +1023,6 @@
         ],
         "title": "DocumentOut"
       },
-      "EnterpriseInquiryRequest": {
-        "properties": {
-          "message": {
-            "type": "string",
-            "title": "Message"
-          }
-        },
-        "type": "object",
-        "required": [
-          "message"
-        ],
-        "title": "EnterpriseInquiryRequest"
-      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1245,6 +1250,19 @@
           "ingest_api_key"
         ],
         "title": "ProjectCreateResponse"
+      },
+      "ProjectDeleteRequest": {
+        "properties": {
+          "project_id": {
+            "type": "integer",
+            "title": "Project Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "project_id"
+        ],
+        "title": "ProjectDeleteRequest"
       },
       "ProjectListResponse": {
         "properties": {
@@ -1516,16 +1534,12 @@
           "message": {
             "type": "string",
             "title": "Message"
-          },
-          "user": {
-            "$ref": "#/components/schemas/UserResponse"
           }
         },
         "type": "object",
         "required": [
           "success",
-          "message",
-          "user"
+          "message"
         ],
         "title": "RegisterResponse"
       },
@@ -1700,6 +1714,37 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "VerifyEmailRequest": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "VerifyEmailRequest"
+      },
+      "VerifyEmailResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "message"
+        ],
+        "title": "VerifyEmailResponse"
       }
     }
   }

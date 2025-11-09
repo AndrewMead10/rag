@@ -59,17 +59,6 @@ function ProjectsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; projectId: number; projectName: string } | null>(null)
   const [deleteTypedName, setDeleteTypedName] = useState('')
 
-  const upgrade = useMutation({
-    mutationFn: api.billing.upgrade,
-    onSuccess: (url) => {
-      toast.success('Redirecting to Polar Checkout...')
-      window.location.href = url
-    },
-    onError: (err: any) => {
-      toast.error(err?.message || 'Unable to start upgrade')
-    },
-  })
-
   const topUp = useMutation({
     mutationFn: async (quantity: number) => api.billing.topUp(quantity),
     onSuccess: (url) => {
@@ -89,12 +78,6 @@ function ProjectsPage() {
     onError: (err: any) => {
       toast.error(err?.message || 'Unable to open billing portal')
     },
-  })
-
-  const enterpriseRequest = useMutation({
-    mutationFn: api.billing.enterprise,
-    onSuccess: () => toast.success('Thanks! We will reach out shortly.'),
-    onError: (err: any) => toast.error(err?.message || 'Unable to submit request'),
   })
 
   const handleCreateProject = async () => {
@@ -126,12 +109,6 @@ function ProjectsPage() {
       return
     }
     topUp.mutate(quantity)
-  }
-
-  const handleEnterpriseRequest = () => {
-    const message = window.prompt('Tell us what you need for dedicated deployments:')
-    if (!message) return
-    enterpriseRequest.mutate(message)
   }
 
   const handleDeleteProject = (projectId: number, projectName: string) => {
@@ -261,19 +238,11 @@ function ProjectsPage() {
             </div>
             <div className="flex gap-2">
               <Button
-                onClick={() => upgrade.mutate()}
-                disabled={upgrade.isPending}
+                asChild
                 className="bg-foreground text-background border-2 border-foreground sharp-corners font-bold hover:bg-muted hover:text-foreground transition-all duration-200 dither-text px-4 py-2"
               >
-                {upgrade.isPending ? 'PREPARING CHECKOUT…' : '[ GET SUBSCRIPTION ]'}
-              </Button>
-              <Button
-                variant="outline"
-                asChild
-                className="bg-background border-2 border-foreground text-foreground sharp-corners font-bold hover:bg-foreground hover:text-background transition-all duration-200"
-              >
                 <Link to="/pricing">
-                  [ VIEW PRICING ]
+                  [ GET SUBSCRIPTION ]
                 </Link>
               </Button>
             </div>
@@ -288,18 +257,19 @@ function ProjectsPage() {
               <CardTitle className="text-xl font-bold dither-text">{plan.name.toUpperCase()} PLAN</CardTitle>
               <CardDescription className="font-mono-jetbrains text-sm">
                 {plan.slug === 'testing'
-                  ? 'Trial the platform on Testing and upgrade when ready.'
+                  ? 'Trial the platform on Testing and choose Building or Scale when ready.'
                   : 'Your active subscription'}
               </CardDescription>
             </div>
             <div className="flex gap-2">
               {plan.slug === 'testing' && (
                 <Button
-                  onClick={() => upgrade.mutate()}
-                  disabled={upgrade.isPending}
+                  asChild
                   className="bg-foreground text-background border-2 border-foreground sharp-corners font-bold hover:bg-muted hover:text-foreground transition-all duration-200 dither-text px-4 py-2"
                 >
-                  {upgrade.isPending ? 'REDIRECTING...' : '[ UPGRADE TO BUILDING ]'}
+                  <Link to="/pricing">
+                    [ CHOOSE PLAN ]
+                  </Link>
                 </Button>
               )}
               {plan.allow_topups && (
@@ -324,11 +294,12 @@ function ProjectsPage() {
               )}
               <Button
                 variant="ghost"
-                onClick={handleEnterpriseRequest}
-                disabled={enterpriseRequest.isPending}
+                asChild
                 className="bg-card border border-foreground dither-border sharp-corners font-bold hover:bg-muted transition-all duration-200"
               >
-                [ CONTACT ENTERPRISE ]
+                <Link to="/pricing">
+                  [ VIEW SCALE PLAN ]
+                </Link>
               </Button>
             </div>
           </CardHeader>

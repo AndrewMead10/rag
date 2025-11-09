@@ -31,9 +31,9 @@ DEFAULT_PLANS = [
         "polar_product_id": None,
     },
     {
-        "slug": "enterprise",
-        "name": "Enterprise",
-        "price_cents": 10_000,
+        "slug": "scale",
+        "name": "Scale",
+        "price_cents": 5_000,
         "query_qps_limit": 100,
         "ingest_qps_limit": 100,
         "project_limit": -1,
@@ -53,7 +53,7 @@ def seed_plans(session: Session) -> None:
     legacy_slug_map = {
         "free": "testing",
         "pro": "building",
-        "scale": "enterprise",
+        "enterprise": "scale",
     }
 
     changed = False
@@ -75,6 +75,8 @@ def seed_plans(session: Session) -> None:
         plan_data = dict(base_plan_data)
         if plan_data["slug"] == "building" and settings.polar_product_building:
             plan_data["polar_product_id"] = settings.polar_product_building
+        if plan_data["slug"] == "scale" and settings.polar_product_scale:
+            plan_data["polar_product_id"] = settings.polar_product_scale
         plan = existing.get(plan_data["slug"])
         if plan is None:
             session.add(Plan(**plan_data, created_at=now, updated_at=now))

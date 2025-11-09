@@ -35,7 +35,7 @@ export interface paths {
         put?: never;
         /**
          * Register Onsubmit
-         * @description Handle user registration
+         * @description Handle user registration with email verification
          */
         post: operations["register_onsubmit_api_auth_register_onsubmit_post"];
         delete?: never;
@@ -138,6 +138,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/verify-email/onsubmit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify Email
+         * @description Handle email verification when user clicks the link
+         */
+        post: operations["verify_email_api_auth_verify_email_onsubmit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/onload": {
         parameters: {
             query?: never;
@@ -166,6 +186,23 @@ export interface paths {
         put?: never;
         /** Create Project */
         post: operations["create_project_api_projects_onsubmit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Delete Project */
+        post: operations["delete_project_api_projects_delete_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -223,23 +260,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/billing/upgrade": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Upgrade Plan */
-        post: operations["upgrade_plan_api_billing_upgrade_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/billing/topup": {
         parameters: {
             query?: never;
@@ -268,23 +288,6 @@ export interface paths {
         put?: never;
         /** Open Billing Portal */
         post: operations["open_billing_portal_api_billing_portal_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/billing/enterprise": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Request Enterprise Plan */
-        post: operations["request_enterprise_plan_api_billing_enterprise_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -490,11 +493,6 @@ export interface components {
              */
             created_at: string;
         };
-        /** EnterpriseInquiryRequest */
-        EnterpriseInquiryRequest: {
-            /** Message */
-            message: string;
-        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -577,6 +575,11 @@ export interface components {
             project: components["schemas"]["ProjectSummary"];
             /** Ingest Api Key */
             ingest_api_key: string;
+        };
+        /** ProjectDeleteRequest */
+        ProjectDeleteRequest: {
+            /** Project Id */
+            project_id: number;
         };
         /** ProjectListResponse */
         ProjectListResponse: {
@@ -668,7 +671,6 @@ export interface components {
             success: boolean;
             /** Message */
             message: string;
-            user: components["schemas"]["UserResponse"];
         };
         /** ResetConfirm */
         ResetConfirm: {
@@ -726,6 +728,18 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** VerifyEmailRequest */
+        VerifyEmailRequest: {
+            /** Token */
+            token: string;
+        };
+        /** VerifyEmailResponse */
+        VerifyEmailResponse: {
+            /** Success */
+            success: boolean;
+            /** Message */
+            message: string;
         };
     };
     responses: never;
@@ -928,6 +942,39 @@ export interface operations {
             };
         };
     };
+    verify_email_api_auth_verify_email_onsubmit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerifyEmailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     projects_onload_api_projects_onload_get: {
         parameters: {
             query?: never;
@@ -968,6 +1015,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectCreateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_project_api_projects_delete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectDeleteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -1087,26 +1167,6 @@ export interface operations {
             };
         };
     };
-    upgrade_plan_api_billing_upgrade_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CheckoutResponse"];
-                };
-            };
-        };
-    };
     purchase_topup_api_billing_topup_post: {
         parameters: {
             query?: never;
@@ -1156,39 +1216,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CheckoutResponse"];
-                };
-            };
-        };
-    };
-    request_enterprise_plan_api_billing_enterprise_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EnterpriseInquiryRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

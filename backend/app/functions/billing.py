@@ -24,7 +24,6 @@ class PolarConfig:
     environment: str
     success_url: str
     cancel_url: str
-    product_building: str
     product_topup: str
     topup_unit_cents: int
 
@@ -35,7 +34,6 @@ def _get_config() -> PolarConfig:
         environment=settings.polar_environment,
         success_url=settings.polar_success_url,
         cancel_url=settings.polar_cancel_url,
-        product_building=settings.polar_product_building,
         product_topup=settings.polar_product_topup,
         topup_unit_cents=settings.polar_topup_unit_cents,
     )
@@ -47,45 +45,6 @@ def _get_config() -> PolarConfig:
 
 def _client(config: PolarConfig) -> Polar:
     return Polar(access_token=config.access_token, server=config.environment)
-
-
-def create_upgrade_checkout_session(
-    session: Session,
-    *,
-    account: Account,
-    user_email: str,
-    target_plan: Plan,
-) -> str:
-    subscription = account.subscription
-    if subscription and subscription.plan_id == target_plan.id and subscription.status == "active":
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Already on the Building plan")
-
-    config = _get_config()
-    if not config.product_building:
-        raise HTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Polar product for Building plan not configured",
-        )
-
-    client = _client(config)
-    metadata: Dict[str, Any] = {
-        "account_id": str(account.id),
-        "plan_id": str(target_plan.id),
-        "intent": "plan_upgrade",
-    }
-
-    checkout = client.checkouts.create(
-        request={
-            "products": [config.product_building],
-            "success_url": config.success_url,
-            "return_url": config.cancel_url,
-            "external_customer_id": _external_customer_id(account.id),
-            "customer_email": user_email,
-            "metadata": metadata,
-        }
-    )
-
-    return checkout.url
 
 
 def create_topup_checkout_session(

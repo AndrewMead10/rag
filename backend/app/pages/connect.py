@@ -1,11 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import os
 from ..config import settings
+from ..functions.email import email_service
 
 router = APIRouter()
 
@@ -25,7 +22,7 @@ async def connect_onload():
     Load connect page data
     """
     return {
-        "discord_link": "https://discord.gg/YOUR_DISCORD_INVITE",
+        "discord_link": "https://discord.gg/zqsu7kDSd",
         "support_email": "support@retriever.sh",
         "contact_info": {
             "email": "support@retriever.sh",
@@ -39,18 +36,25 @@ async def submit_contact_form(form_data: ContactForm):
     Handle contact form submission
     """
     try:
-        # Here you would typically:
-        # 1. Save the contact form to database
-        # 2. Send email notification
-        # 3. Send confirmation email to user
+        # 1. Send email notification to support team
+        support_notification_sent = email_service.send_contact_notification(
+            name=form_data.name,
+            email=form_data.email,
+            subject=form_data.subject,
+            message=form_data.message
+        )
 
-        # For now, we'll just log and return success
+        # 2. Send confirmation email to user
+        user_confirmation_sent = email_service.send_contact_confirmation(
+            to_email=form_data.email,
+            name=form_data.name
+        )
+
+        # 3. Log the submission for debugging/auditing
         print(f"Contact form submission from {form_data.email}:")
         print(f"Subject: {form_data.subject}")
-        print(f"Message: {form_data.message}")
-
-        # TODO: Implement actual email sending functionality
-        # You could use services like SendGrid, AWS SES, or SMTP
+        print(f"Support notification sent: {support_notification_sent}")
+        print(f"User confirmation sent: {user_confirmation_sent}")
 
         return ContactResponse(
             success=True,

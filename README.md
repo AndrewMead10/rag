@@ -6,8 +6,8 @@ Production-ready FastAPI + React implementation that turns the original `vector-
 
 - 🔐 **Self-service accounts** – email/password auth with JWT refresh, automatic account provisioning, and single-user billing ready for future org support.
 - 🧱 **Project isolation** – each project provisions its own pgvector-backed namespace while reusing the hybrid retrieval logic from `vector-lab-rag`.
-- ⚖️ **Plan limits & rate enforcement** – token-bucket QPS limits (1 / 10 / 100 for Testing, Building, Enterprise) and plan-specific project/vector caps enforced entirely in PostgreSQL, no Redis required.
-- 💳 **Polar integration** – checkout session generation for upgrades and vector top-ups, portal hand-off, and webhook handlers to activate plans/add capacity.
+- ⚖️ **Plan limits & rate enforcement** – token-bucket QPS limits (1 / 10 / 100 for Testing, Building, Scale) and plan-specific project/vector caps enforced entirely in PostgreSQL, no Redis required.
+- 💳 **Polar integration** – vector top-ups, self-service portal hand-off, and webhook handlers to activate plans/add capacity.
 - 🌗 **Light/Dark UI** – React + TanStack Router frontend with Tailwind v4 theming, project dashboard, and one-click theme toggle.
 - 🧪 **Targeted tests** – unit coverage for rate limiting and usage counters to guard quota logic.
 
@@ -28,6 +28,7 @@ Key additions beyond the base template:
 | `RAG_EMBED_DIM` | Embedding dimension expected by the model (default `768`). |
 | `POLAR_ACCESS_TOKEN` | Required for live checkout / portal creation (personal access token from Polar). |
 | `POLAR_PRODUCT_BUILDING_ID` | Polar product ID for the Building plan subscription upgrade. |
+| `POLAR_PRODUCT_SCALE_ID` | Polar product ID for the Scale plan subscription. |
 | `POLAR_PRODUCT_TOPUP_ID` | Polar product ID for one-off vector top-ups. |
 | `POLAR_TOPUP_UNIT_CENTS` | Amount (in cents) charged per million vectors purchased. |
 | `POLAR_SUCCESS_URL` / `POLAR_CANCEL_URL` | Post-checkout redirect destinations. |
@@ -44,7 +45,7 @@ uv run alembic upgrade head
 uv run uvicorn app.main:app --reload --port 5656
 ```
 
-On startup the app seeds the canonical plans (Testing / Building / Enterprise) and ensures rate-limit buckets exist for each account.
+On startup the app seeds the canonical plans (Testing / Building / Scale) and ensures rate-limit buckets exist for each account.
 
 ### 3. Frontend
 
@@ -117,10 +118,8 @@ Removes the document from FTS, vector index, and decrements usage counters so cu
 
 | Method | Endpoint | Notes |
 | --- | --- | --- |
-| `POST` | `/api/billing/upgrade` | Creates a Polar Checkout session for the Building plan. |
 | `POST` | `/api/billing/topup` | Expects `{"quantity_millions": 1}`; opens Checkout for one-off vector bundles. |
 | `POST` | `/api/billing/portal` | Generates a Polar customer portal session for self-service management. |
-| `POST` | `/api/billing/enterprise` | Captures dedicated deployment requests for the Enterprise plan. |
 | `POST` | `/api/billing/webhook` | Processes checkout completions and subscription lifecycle events (Polar forwards checkout metadata with `account_id`). |
 
 If Polar credentials are omitted the endpoints fail fast with HTTP 503 so development can proceed without billing configured.
@@ -133,7 +132,7 @@ Plan seeding defines the default caps:
 | --- | --- | --- | --- | --- | --- |
 | Testing | $5 | 1 | 1 | 3 | 30,000 total (≈10k/project) |
 | Building | $20 | 10 | 10 | 20 | 2,000,000 total (≈100k/project) + top-ups |
-| Enterprise | $100 | 100 | 100 | Unlimited | Unlimited per project |
+| Scale | $50 | 100 | 100 | Unlimited | Unlimited per project |
 
 - QPS is enforced with token buckets stored in PostgreSQL (`rate_limit_buckets`).
 - Vector/storage caps combine the base plan limit plus any purchased top-ups.

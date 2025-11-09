@@ -71,6 +71,15 @@ class Settings(BaseSettings):
         "",
         validation_alias=AliasChoices("POLAR_PRODUCT_BUILDING_ID", "POLAR_PRODUCT_BUILDING"),
     )
+    polar_product_scale: str = Field(
+        "",
+        validation_alias=AliasChoices(
+            "POLAR_PRODUCT_SCALE_ID",
+            "POLAR_PRODUCT_SCALE",
+            "POLAR_PRODUCT_ENTERPRISE_ID",
+            "POLAR_PRODUCT_ENTERPRISE",
+        ),
+    )
     polar_product_topup: str = Field(
         "",
         validation_alias=AliasChoices("POLAR_PRODUCT_TOPUP_ID", "POLAR_PRODUCT_TOPUP"),

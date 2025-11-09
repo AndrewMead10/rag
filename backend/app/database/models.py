@@ -183,13 +183,3 @@ class ProjectApiKey(Base, AuditMixin):
 
     project = relationship("Project", back_populates="api_keys")
 
-
-class EnterprisePlanInquiry(Base, AuditMixin):
-    __tablename__ = "scale_plan_inquiries"
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    email = Column(String, nullable=False)
-    message = Column(Text, nullable=True)
-
-    user = relationship("User", backref="enterprise_plan_inquiries")

@@ -164,16 +164,6 @@ const apiClient = {
     }
   },
 
-  async requestUpgrade(): Promise<string> {
-    const response = await fetchWithAuth('/api/billing/upgrade', { method: 'POST' })
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}))
-      throw new Error(error.detail || error.message || 'Failed to start upgrade')
-    }
-    const data = await response.json()
-    return data.url as string
-  },
-
   async requestTopUp(quantityMillions: number): Promise<string> {
     const response = await fetchWithAuth('/api/billing/topup', {
       method: 'POST',
@@ -197,18 +187,6 @@ const apiClient = {
     const data = await response.json()
     return data.url as string
   },
-
-  async submitEnterpriseRequest(message: string): Promise<void> {
-    const response = await fetchWithAuth('/api/billing/enterprise', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message }),
-    })
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}))
-      throw new Error(error.detail || error.message || 'Failed to submit enterprise inquiry')
-    }
-  },
 }
 
 // Export the api object for use in route loaders
@@ -221,10 +199,8 @@ export const api = {
     delete: apiClient.deleteProject,
   },
   billing: {
-    upgrade: apiClient.requestUpgrade,
     topUp: apiClient.requestTopUp,
     portal: apiClient.openBillingPortal,
-    enterprise: apiClient.submitEnterpriseRequest,
   },
 }
 
