@@ -56,6 +56,8 @@ function ProjectsPage() {
     name: '',
     description: '',
   })
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; projectId: number; projectName: string } | null>(null)
+  const [deleteTypedName, setDeleteTypedName] = useState('')
 
   const upgrade = useMutation({
     mutationFn: api.billing.upgrade,
@@ -133,11 +135,17 @@ function ProjectsPage() {
   }
 
   const handleDeleteProject = (projectId: number, projectName: string) => {
-    const confirmed = window.confirm(`Are you sure you want to delete project "${projectName}"? This action cannot be undone.`)
-    if (!confirmed) return
-    deleteProject.mutate(projectId, {
+    setDeleteConfirm({ show: true, projectId, projectName })
+    setDeleteTypedName('')
+  }
+
+  const confirmDeleteProject = () => {
+    if (!deleteConfirm) return
+    deleteProject.mutate(deleteConfirm.projectId, {
       onSuccess: () => {
         toast.success('Project deleted successfully')
+        setDeleteConfirm(null)
+        setDeleteTypedName('')
       },
       onError: (err: any) => {
         toast.error(err?.message || 'Failed to delete project')
@@ -410,6 +418,49 @@ function ProjectsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirm?.show ?? false} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <DialogContent className="bg-card border-2 border-red-600 dither-border sharp-corners">
+          <DialogHeader>
+            <DialogTitle className="font-bold dither-text text-red-600">DELETE PROJECT</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm font-mono-jetbrains">
+              This action cannot be undone. This will permanently delete the project and all associated vectors.
+            </p>
+            <p className="text-sm font-mono-jetbrains font-bold">
+              Please type <span className="bg-red-100 dark:bg-red-900/30 px-1">{deleteConfirm?.projectName}</span> to confirm:
+            </p>
+            <Input
+              placeholder="Type project name here"
+              value={deleteTypedName}
+              onChange={(e) => setDeleteTypedName(e.target.value)}
+              className="bg-background border-2 border-foreground dither-border sharp-corners font-mono-jetbrains"
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteConfirm(null)
+                setDeleteTypedName('')
+              }}
+              className="bg-background border-2 border-foreground text-foreground sharp-corners font-bold hover:bg-foreground hover:text-background transition-all duration-200"
+            >
+              [ CANCEL ]
+            </Button>
+            <Button
+              onClick={confirmDeleteProject}
+              disabled={deleteTypedName !== deleteConfirm?.projectName || deleteProject.isPending}
+              className="bg-red-600 text-white border-2 border-red-600 sharp-corners font-bold hover:bg-red-700 hover:border-red-700 transition-all duration-200 dither-text disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {deleteProject.isPending ? 'DELETING...' : '[ DELETE PROJECT ]'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       </div>
     </div>
   )
