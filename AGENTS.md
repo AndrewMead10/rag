@@ -17,6 +17,7 @@ A comprehensive full-stack service template with FastAPI, React, and modern deve
 - Billing page (Nov 9, 2025): `/billing` now mirrors Polar return URLs, shows the same plan/usage data as `/projects`, and links into checkout + the Polar customer portal. `/billing/success`, `/billing/canceled`, and `/billing/portal` share the view but display contextual banners so Polar success/cancel/portal return URLs can be pointed there without custom screens.
 - Polar webhook fix (Nov 9, 2025): Polar's SDK exposes the event type under the `TYPE` alias, so webhook handlers now read `event.TYPE`/`by_alias` dumps to correctly process `order.paid` and subscription lifecycle events; prior events were being acknowledged without provisioning plans.
 - Vector top-up cleanup (Nov 9, 2025): removed the `VectorTopUp` model/table, the `allow_topups` plan flag, and the associated capacity math so vector limits now depend solely on the active plan plus the new Alembic `0004_remove_vector_topups` migration.
+- Container base image (Nov 10, 2025): Dockerfile now uses `ghcr.io/abetlen/llama-cpp-python` for both backend stages so llama.cpp runtimes are already installed; backend `pyproject.toml` still declares `llama-cpp-python` for local dev parity.
 
 ---
 

@@ -215,7 +215,7 @@ export function BillingPage({ status }: { status?: BillingStatus }) {
             <SummaryItem label="PRICE" value={needsSubscription ? '--' : planDisplayPrice} />
             <SummaryItem label="QUERY QPS" value={plan ? `${plan.query_qps_limit}` : '--'} help="per second" />
             <SummaryItem label="INGEST QPS" value={plan ? `${plan.ingest_qps_limit}` : '--'} help="per second" />
-            <SummaryItem label="PROJECTS" value={formatLimit(projectLimit)} />
+            <SummaryItem label="PROJECTS" value={formatLimit(projectLimit, needsSubscription)} />
           </CardContent>
         </Card>
 
@@ -300,7 +300,7 @@ export function BillingPage({ status }: { status?: BillingStatus }) {
                 />
                 <UsagePanel
                   title="Projects"
-                  primary={`${formatNumber(usage.project_count)} / ${formatLimit(projectLimit)}`}
+                  primary={`${formatNumber(usage.project_count)} / ${formatLimit(projectLimit, needsSubscription)}`}
                   help="Active projects"
                   percent={projectPercent}
                 />
@@ -348,9 +348,9 @@ function UsagePanel({ title, primary, help, percent }: { title: string; primary:
   )
 }
 
-function formatLimit(limit: number | null | undefined) {
+function formatLimit(limit: number | null | undefined, needsSubscription?: boolean) {
   if (limit === null || limit === undefined) {
-    return 'Unlimited'
+    return needsSubscription ? '0' : 'Unlimited'
   }
   if (limit < 0) {
     return 'Unlimited'
