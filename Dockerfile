@@ -1,8 +1,17 @@
 ###############################
 # Backend OpenAPI export stage
 ###############################
-FROM ghcr.io/abetlen/llama-cpp-python:v0.3.5 as backend-openapi
+FROM python:3.11-slim as backend-openapi
 WORKDIR /app
+
+# Install build dependencies for llama-cpp-python
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    make \
+    cmake \
+ && rm -rf /var/lib/apt/lists/*
 
 RUN pip install uv
 
@@ -31,13 +40,17 @@ RUN npm run build
 ###############################
 # Python backend stage
 ###############################
-FROM ghcr.io/abetlen/llama-cpp-python:v0.3.5 as backend
+FROM python:3.11-slim as backend
 WORKDIR /app
 
-# Install curl for healthchecks
+# Install curl for healthchecks and build dependencies for llama-cpp-python
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     curl \
+    gcc \
+    g++ \
+    make \
+    cmake \
  && rm -rf /var/lib/apt/lists/*
 
 # Install UV for faster dependency management
