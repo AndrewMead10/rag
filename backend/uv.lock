@@ -698,7 +698,7 @@ wheels = [
 
 [[package]]
 name = "llama-cpp-python"
-version = "0.3.16"
+version = "0.3.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "diskcache" },
@@ -706,7 +706,7 @@ dependencies = [
     { name = "numpy" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e4/b4/c8cd17629ced0b9644a71d399a91145aedef109c0333443bef015e45b704/llama_cpp_python-0.3.16.tar.gz", hash = "sha256:34ed0f9bd9431af045bb63d9324ae620ad0536653740e9bb163a2e1fcb973be6", size = 50688636, upload-time = "2025-08-15T04:58:29.212Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/91/00/9b4c5557b694fb8d3730d006afbb2facc36f27e2c0f136d9cc009f4b1ffa/llama_cpp_python-0.3.5.tar.gz", hash = "sha256:f5ce47499d53d3973e28ca5bdaf2dfe820163fa3fb67e3050f98e2e9b58d2cf6", size = 64461879, upload-time = "2024-12-10T00:14:11.76Z" }
 
 [[package]]
 name = "logfire"
@@ -1464,7 +1464,7 @@ requires-dist = [
     { name = "fastapi" },
     { name = "httpx" },
     { name = "huggingface-hub" },
-    { name = "llama-cpp-python" },
+    { name = "llama-cpp-python", specifier = "==0.3.5" },
     { name = "logfire" },
     { name = "logfire", extras = ["fastapi"] },
     { name = "logfire", extras = ["sqlalchemy"] },

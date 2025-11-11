@@ -13,8 +13,8 @@ export function Navbar() {
   const { logout, isAuthenticated } = useAuth({
     fetchUser: !isAuthRoute,
   })
-  const { data: projectsData } = useProjects()
-  const needsSubscription = projectsData?.needs_subscription || false
+  const { data: projectsData } = useProjects({ enabled: isAuthenticated })
+  const needsSubscription = isAuthenticated && (projectsData?.needs_subscription || false)
 
   // Helper function to check if a link is active
   const isActive = (path: string) => {

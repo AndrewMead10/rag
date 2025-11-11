@@ -28,9 +28,13 @@ import { api, useCreateProject, useDeleteProject, useProjects } from '@/lib/api'
 import type { ProjectCreatePayload } from '@/lib/types'
 import { queryClient } from '@/routes/__root'
 import { formatNumber, formatVectorLimit } from '@/utils/format'
+import { hasActiveSession } from '@/lib/session'
 
 export const Route = createFileRoute('/projects/')({
   beforeLoad: async () => {
+    if (!hasActiveSession()) {
+      throw redirect({ to: '/auth/login', search: { redirect: undefined } })
+    }
     try {
       await queryClient.ensureQueryData({
         queryKey: ['user'],

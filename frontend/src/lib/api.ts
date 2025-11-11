@@ -7,6 +7,7 @@ import type {
   RegisterPayload,
   User,
 } from '@/lib/types'
+import { hasActiveSession } from '@/lib/session'
 
 // Refresh lock to prevent concurrent refresh requests
 let refreshPromise: Promise<void> | null = null
@@ -208,6 +209,7 @@ type UseAuthOptions = {
 export function useAuth(options: UseAuthOptions = {}) {
   const queryClient = useQueryClient()
   const { fetchUser = true } = options
+  const shouldFetchUser = fetchUser && hasActiveSession()
 
   const login = useMutation({
     mutationFn: apiClient.login,
@@ -242,7 +244,7 @@ export function useAuth(options: UseAuthOptions = {}) {
     queryKey: ['user'],
     queryFn: apiClient.getCurrentUser,
     retry: false,
-    enabled: fetchUser,
+    enabled: shouldFetchUser,
   })
 
   return {
@@ -268,11 +270,18 @@ export function usePageData(page: string) {
   })
 }
 
-export function useProjects() {
+type UseProjectsOptions = {
+  enabled?: boolean
+  refetchOnWindowFocus?: boolean
+}
+
+export function useProjects(options: UseProjectsOptions = {}) {
+  const { enabled = true, refetchOnWindowFocus = false } = options
   return useQuery({
     queryKey: ['projects'],
     queryFn: apiClient.getProjects,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus,
+    enabled,
   })
 }
 

@@ -75,15 +75,32 @@ def open_billing_portal(
 async def polar_webhook(
     request: Request,
     polar_signature: Optional[str] = Header(None, alias="Polar-Signature"),
+    webhook_signature: Optional[str] = Header(None, alias="Webhook-Signature"),
+    webhook_id: Optional[str] = Header(None, alias="Webhook-Id"),
+    webhook_timestamp: Optional[str] = Header(None, alias="Webhook-Timestamp"),
 ):
     payload = await request.body()
 
     if not settings.polar_webhook_secret:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, detail="Polar webhook secret not configured")
 
-    headers = {"Polar-Signature": polar_signature or ""}
+    # Polar emits Standard Webhooks headers (webhook-id/timestamp/signature).
+    # Some legacy configs used Polar-Signature, so fall back to that if needed.
+    verification_headers = {
+        "webhook-id": webhook_id or request.headers.get("webhook-id"),
+        "webhook-timestamp": webhook_timestamp or request.headers.get("webhook-timestamp"),
+        "webhook-signature": (webhook_signature or polar_signature or request.headers.get("webhook-signature") or request.headers.get("polar-signature")),
+    }
+
+    missing = [name for name, value in verification_headers.items() if not value]
+    if missing:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid webhook payload: Missing headers: {', '.join(missing)}",
+        )
+
     try:
-        event = polar_webhooks.validate_event(payload, headers, settings.polar_webhook_secret)
+        event = polar_webhooks.validate_event(payload, verification_headers, settings.polar_webhook_secret)
     except Exception as exc:  # pragma: no cover
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=f"Invalid webhook payload: {exc}") from exc
 
