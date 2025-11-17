@@ -131,7 +131,7 @@ async def polar_webhook(
             db.commit()
 
     elif event_type in {"subscription.updated", "subscription.active", "subscription.uncanceled"}:
-        metadata = _extract_metadata(data)
+        metadata = _extract_metadata(data.metadata) if hasattr(data, 'metadata') else _extract_metadata(data.get("metadata") if isinstance(data, dict) else {})
         user_id = metadata.get("user_id")
         if not user_id:
             return {"received": True}
@@ -150,7 +150,7 @@ async def polar_webhook(
             db.commit()
 
     elif event_type in {"subscription.canceled", "subscription.revoked"}:
-        metadata = _extract_metadata(data)
+        metadata = _extract_metadata(data.metadata) if hasattr(data, 'metadata') else _extract_metadata(data.get("metadata") if isinstance(data, dict) else {})
         user_id = metadata.get("user_id")
         if not user_id:
             return {"received": True}

@@ -27,7 +27,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { api, useCreateProject, useDeleteProject, useProjects } from '@/lib/api'
 import type { ProjectCreatePayload } from '@/lib/types'
 import { queryClient } from '@/routes/__root'
-import { formatNumber, formatVectorLimit } from '@/utils/format'
+import { formatNumber } from '@/utils/format'
 import { hasActiveSession } from '@/lib/session'
 
 export const Route = createFileRoute('/projects/')({
@@ -128,19 +128,10 @@ function ProjectsPage() {
   const needsSubscription = data?.needs_subscription ?? false
   const usage = data?.usage
   const projects = data?.projects ?? []
-  const vectorLimit = usage?.vector_limit ?? null
-  const vectorPercent = vectorLimit
-    ? Math.min(100, Math.round((usage!.total_vectors / vectorLimit) * 100))
-    : 0
   const projectLimit = usage?.project_limit ?? null
   const projectPercent = projectLimit
     ? Math.min(100, Math.round((usage!.project_count / projectLimit) * 100))
     : 0
-  const approxVectorsPerProject =
-    plan?.per_project_vector_limit ??
-    (plan && plan.project_limit && plan.project_limit > 0 && vectorLimit
-      ? Math.floor(vectorLimit / plan.project_limit)
-      : null)
 
   return (
     <div className="min-h-screen bg-background dither-bg font-mono-jetbrains">
@@ -245,13 +236,13 @@ function ProjectsPage() {
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              {plan.slug === 'tinkering' && (
+              {plan.slug !== 'scale' && (
                 <Button
                   asChild
                   className="bg-foreground text-background border-2 border-foreground sharp-corners font-bold hover:bg-muted hover:text-foreground transition-all duration-200 dither-text px-4 py-2"
                 >
                   <Link to="/pricing">
-                    [ CHOOSE PLAN ]
+                    [ UPGRADE PLAN ]
                   </Link>
                 </Button>
               )}
@@ -265,34 +256,19 @@ function ProjectsPage() {
                   [ BILLING PORTAL ]
                 </Button>
               )}
-              <Button
-                variant="ghost"
-                asChild
-                className="bg-card border border-foreground dither-border sharp-corners font-bold hover:bg-muted transition-all duration-200"
-              >
-                <Link to="/pricing">
-                  [ VIEW SCALE PLAN ]
-                </Link>
-              </Button>
-            </div>
+              </div>
           </CardHeader>
           <CardContent className="grid gap-6 md:grid-cols-3">
             <MetricCard title="QUERY QPS" value={`${plan.query_qps_limit}`} help="per second" />
             <MetricCard
-              title="VECTORS"
-              value={formatVectorLimit(usage.total_vectors, vectorLimit)}
-              help={
-                approxVectorsPerProject
-                  ? `≈ ${formatNumber(approxVectorsPerProject)} per project`
-                  : vectorLimit === null
-                    ? 'Per project unlimited'
-                    : undefined
+              title="VECTORS PER PROJECT"
+              value={
+                plan?.per_project_vector_limit
+                  ? formatNumber(plan.per_project_vector_limit)
+                  : 'Unlimited'
               }
-            >
-              {vectorLimit && (
-                <Progress value={vectorPercent} className="mt-2" />
-              )}
-            </MetricCard>
+              help="Available per project"
+            />
             <MetricCard title="PROJECTS" value={`${usage.project_count}`}>
               {projectLimit && (
                 <Progress value={projectPercent} className="mt-2" />

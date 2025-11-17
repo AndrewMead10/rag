@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 from ..database.models import User, UserSubscription, UserUsage, Plan, Project
 
 PER_PROJECT_VECTOR_LIMITS: dict[str, int] = {
+    "tinkering": 10_000,
+    "building": 100_000,
     "scale": 250_000,
 }
 
