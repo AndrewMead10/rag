@@ -95,6 +95,15 @@ class ProjectCreateResponse(BaseModel):
     ingest_api_key: str
 
 
+class ProjectRotateKeyRequest(BaseModel):
+    project_id: int
+
+
+class ProjectApiKeyResponse(BaseModel):
+    project_id: int
+    ingest_api_key: str
+
+
 def _vector_table_name(project_id: int) -> str:
     return f"rag_documents_proj_{project_id}"
 
@@ -238,6 +247,32 @@ def create_project(
     )
 
     return ProjectCreateResponse(project=project_summary, ingest_api_key=ingest_key_plain)
+
+
+@router.post("/rotate-api-key", response_model=ProjectApiKeyResponse)
+def rotate_project_api_key(
+    payload: ProjectRotateKeyRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    user = get_user(db, user_id=current_user.id)
+
+    project = (
+        db.query(Project)
+        .filter(Project.id == payload.project_id, Project.user_id == user.id, Project.active == True)
+        .first()
+    )
+    if not project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
+    ingest_key_plain = generate_api_key(prefix="proj")
+    project.ingest_api_key_hash = hash_api_key(ingest_key_plain)
+
+    db.add(project)
+    db.commit()
+    db.refresh(project)
+
+    return ProjectApiKeyResponse(project_id=project.id, ingest_api_key=ingest_key_plain)
 
 
 class ProjectDeleteRequest(BaseModel):

@@ -3,6 +3,7 @@ import type {
   LoginData,
   ProjectCreatePayload,
   ProjectCreateResponse,
+  ProjectRotateKeyResponse,
   ProjectsOnload,
   RegisterPayload,
   User,
@@ -165,6 +166,19 @@ const apiClient = {
     }
   },
 
+  async rotateProjectApiKey(projectId: number): Promise<ProjectRotateKeyResponse> {
+    const response = await fetchWithAuth('/api/projects/rotate-api-key', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project_id: projectId }),
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.detail || error.message || 'Failed to rotate API key')
+    }
+    return response.json()
+  },
+
   async createCheckout(planSlug: string): Promise<string> {
     const response = await fetchWithAuth(`/api/billing/checkout?plan_slug=${planSlug}`, { method: 'POST' })
     if (!response.ok) {
@@ -194,6 +208,7 @@ export const api = {
     list: apiClient.getProjects,
     create: apiClient.createProject,
     delete: apiClient.deleteProject,
+    rotateKey: apiClient.rotateProjectApiKey,
   },
   billing: {
     checkout: apiClient.createCheckout,
@@ -299,6 +314,16 @@ export function useDeleteProject() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: apiClient.deleteProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+    },
+  })
+}
+
+export function useRotateProjectKey() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (projectId: number) => apiClient.rotateProjectApiKey(projectId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] })
     },

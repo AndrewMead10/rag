@@ -82,3 +82,8 @@ export interface ProjectCreateResponse {
   project: ProjectSummary
   ingest_api_key: string
 }
+
+export interface ProjectRotateKeyResponse {
+  project_id: number
+  ingest_api_key: string
+}
