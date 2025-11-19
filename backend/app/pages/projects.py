@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 from typing import List, Optional
 
@@ -9,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from ..config import settings
 from ..database import get_db
-from ..database.models import Project
+from ..database.models import Project, ProjectDocument
 from ..functions.accounts import (
     ensure_project_capacity,
     get_user,
@@ -105,7 +106,7 @@ class ProjectApiKeyResponse(BaseModel):
 
 
 def _vector_table_name(project_id: int) -> str:
-    return f"rag_documents_proj_{project_id}"
+    return f"vespa_proj_{project_id}"
 
 
 @router.get("/onload", response_model=ProjectListResponse)
@@ -225,9 +226,6 @@ def create_project(
     db.commit()
     db.refresh(project)
 
-    # Ensure the vector store exists and is initialised.
-    vector_store_registry.get_database(project)
-
     project_summary = ProjectSummary(
         id=project.id,
         name=project.name,
@@ -302,21 +300,20 @@ def delete_project(
     db.add(project)
     db.commit()
 
-    # Mark all vectors in the project's table as inactive
-    try:
-        vector_store = vector_store_registry.get_database(project)
-        if vector_store.is_ready():
-            from sqlalchemy import text as sql_text
-            session = db
-            session.execute(
-                sql_text(f"UPDATE {project.vector_store_path} SET active = 0 WHERE project_id = :project_id"),
-                {"project_id": project.id}
-            )
-            session.commit()
-    except Exception as e:
-        # Log the error but don't fail the delete operation
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.exception(f"Failed to mark vectors as inactive for project {project.id}: {e}")
+    documents = (
+        db.query(ProjectDocument)
+        .filter(ProjectDocument.project_id == project.id, ProjectDocument.active == True)
+        .all()
+    )
+    vector_store = vector_store_registry.get_vector_store(project)
+    for doc in documents:
+        try:
+            vector_store.delete_document(doc)
+        except Exception:
+            logger = logging.getLogger(__name__)
+            logger.exception("Failed to delete Vespa document %s", doc.id)
+        doc.active = False
+        db.add(doc)
+    db.commit()
 
     return {"detail": "Project deleted successfully"}

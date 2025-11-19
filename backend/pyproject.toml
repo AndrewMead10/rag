@@ -12,7 +12,6 @@ dependencies = [
     "uvicorn[standard]",
     "sqlalchemy",
     "alembic",
-    "pgvector",
     "psycopg[binary]",
     "pydantic",
     "pydantic['email']",
@@ -44,3 +43,4 @@ ignore = ["E501"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+pythonpath = ["."]

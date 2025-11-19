@@ -17,7 +17,9 @@
       "Bash(docker compose exec:*)",
       "Bash(docker compose:*)",
       "Bash(docker run:*)",
-      "Bash(docker-compose run:*)"
+      "Bash(docker-compose run:*)",
+      "WebFetch(domain:docs.vespa.ai)",
+      "WebFetch(domain:blog.vespa.ai)"
     ],
     "deny": [],
     "ask": []
